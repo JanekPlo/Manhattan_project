@@ -1,9 +1,8 @@
 # Sztuczna inteligencja w optymalizacji łańcucha dostaw — studium przypadku systemu UPS ORION
 
 > **Temat:** 01. AI Transformation — transformacja branży logistycznej (KEP / last mile) z wykorzystaniem sztucznej inteligencji
+
 > **Typ pracy:** Case study (praca indywidualna)
->
-> **⚠️ Instrukcja dla autora (usuń przed oddaniem):** To jest **baza do redakcji**, a nie gotowiec. Miejsca oznaczone `[TWÓJ WNIOSEK]` musisz uzupełnić własnymi przemyśleniami — to one decydują o ocenie ("poziom samodzielnego myślenia", "własne wnioski i rekomendacje"). Przejrzyj każdy akapit, przeredaguj własnymi słowami i dorzuć własną krytyczną ocenę. Wszystkie liczby pochodzą z realnych, podanych w bibliografii źródeł — jeśli którąś zmienisz, zaktualizuj źródło.
 
 ---
 
@@ -26,7 +25,7 @@ konkretne efekty biznesowe, jakie wyzwania architektoniczne, regulacyjne i etycz
 za sobą pociąga, oraz jakie wnioski strategiczne płyną z niej dla branży logistycznej
 w Europie.
 
-`[TWÓJ WNIOSEK: dodaj 2–3 zdania o tym, dlaczego ten temat jest dla Ciebie ciekawy / dlaczego wybrałeś akurat logistykę. Recenzenci cenią osobiste, świadome uzasadnienie wyboru.]`
+Wybrałem temat AI w logistyce, ponieważ pokazuje on bardzo praktyczne zastosowanie sztucznej inteligencji — nie jako abstrakcyjnej technologii, lecz jako narzędzia, które realnie wpływa na koszty, czas dostaw, organizację pracy i emisję CO₂. Przypadek UPS ORION jest szczególnie interesujący, ponieważ pozwala przeanalizować jednocześnie perspektywę technologiczną, biznesową, strategiczną oraz regulacyjną. Uważam, że logistyka ostatniej mili będzie jednym z obszarów, w których AI w najbliższych latach może przynieść największe korzyści.
 
 ---
 
@@ -61,7 +60,7 @@ darmowej dostawy) i presja środowiskowa. Optymalizacja tras oparta na AI jest j
 nielicznych dźwigni, która **jednocześnie** obniża koszty i emisje — stąd jej
 strategiczne znaczenie.
 
-`[TWÓJ WNIOSEK: odnieś problem do rynku polskiego / europejskiego — np. InPost, DPD, DHL Parcel. Jak presja last mile wygląda w Polsce? To wzmocni sekcję.]`
+`[DO UZUPEŁNIENIA — opcjonalne wzmocnienie: odnieś problem do rynku polskiego/europejskiego (InPost, DPD, DHL Parcel). Jak presja na ostatnią milę wygląda w Polsce? 2–3 zdania wystarczą.]`
 
 ---
 
@@ -97,7 +96,7 @@ efekty (INFORMS).
 | Reakcja na zmiany w trakcie dnia | Brak / ręczna | Ograniczona | Tak, automatyczna |
 | Wykorzystanie danych | Minimalne | Dane mapowe + historyczne | + dane bieżące (odbiory, ruch) |
 
-`[TWÓJ WNIOSEK: porównaj krótko z konkurencją — np. FedEx, Amazon (Amazon stosuje własne systemy routingu). Czy przewaga UPS jest trwała, czy łatwa do skopiowania?]`
+W porównaniu z konkurencją UPS wyróżnia się tym, że ORION jest rozwiązaniem mocno zintegrowanym z codzienną pracą kurierów i optymalizacją ostatniej mili. DHL i FedEx również rozwijają AI w logistyce, zwłaszcza w planowaniu tras, przewidywaniu opóźnień, monitorowaniu przesyłek i automatyzacji procesów. Różnica polega jednak na tym, że w przypadku UPS ORION jest przykładem długofalowego wdrożenia, które bezpośrednio łączy dane, algorytmy i decyzje operacyjne kierowców. Dlatego przewaga UPS nie wynika wyłącznie z samego użycia AI, ale z głębokiej integracji technologii z procesem dostaw.
 
 ---
 
@@ -145,7 +144,7 @@ Rozwiązanie klasy ORION można opisać jako wielowarstwowy system przepływu da
             └──────────────────────────────────────────┘
 ```
 
-`[TWÓJ WNIOSEK: możesz przerysować ten diagram w narzędziu graficznym (np. draw.io) — punktowane są "diagramy, modele lub autorskie frameworki analizy". Dodaj 1–2 zdania interpretacji, np. który element jest najtrudniejszy do skopiowania przez konkurencję.]`
+Największą wartość rozwiązania ORION tworzy nie pojedynczy algorytm, lecz cała architektura łącząca dane, optymalizację, integrację z urządzeniem kierowcy oraz pętlę sprzężenia zwrotnego. Najtrudniejszym elementem do skopiowania przez konkurencję jest właśnie połączenie wysokiej jakości danych operacyjnych z praktycznym wdrożeniem systemu w codziennej pracy kurierów, ponieważ wymaga to czasu, skali i ciągłego doskonalenia modelu.
 
 ---
 
@@ -180,7 +179,7 @@ marżach jest różnicą między zyskiem a stratą.
 ~50 mln USD/rok (INFORMS), a osiągnięta redukcja jest wielokrotnie większa, zwrot z
 inwestycji — mimo wysokich kosztów rozwoju — jest jednoznacznie dodatni.
 
-`[TWÓJ WNIOSEK: oceń, czy taki model (oszczędność, nie przychód) da się "sprzedać" jako produkt SaaS mniejszym firmom. Czy to potencjalne nowe źródło przychodu dla UPS? To dobra okazja na własną rekomendację.]`
+Model oparty na oszczędnościach można potencjalnie sprzedawać jako produkt SaaS mniejszym firmom logistycznym, ponieważ dla nich redukcja kosztów paliwa, czasu pracy i liczby przejechanych kilometrów również ma dużą wartość. UPS nie powinien jednak udostępniać pełnej wersji ORION, ponieważ jest to źródło jego przewagi konkurencyjnej. Lepszym rozwiązaniem byłoby stworzenie uproszczonej platformy lub modułu optymalizacji tras dla firm spoza bezpośredniej konkurencji. Mogłoby to stać się dodatkowym źródłem przychodu, ale główną wartością ORION dla UPS pozostaje wewnętrzna poprawa efektywności operacyjnej.
 
 ---
 
@@ -207,7 +206,7 @@ się na ocenę pracownika.
 dotyka prawa pracy i wymaga dialogu ze związkami zawodowymi (w przypadku UPS bardzo
 silnymi w USA) — to nie tylko kwestia prawna, ale i akceptacji społecznej wdrożenia.
 
-`[TWÓJ WNIOSEK: która z tych regulacji jest dla polskiej/europejskiej firmy logistycznej najtrudniejsza do spełnienia i dlaczego? Zajmij stanowisko.]`
+Najtrudniejszą regulacją dla polskiej lub europejskiej firmy logistycznej będzie moim zdaniem RODO, szczególnie w zakresie danych kierowców, lokalizacji, czasu pracy i oceny efektywności. Sam system optymalizacji tras może nie być uznany za wysokiego ryzyka, ale w praktyce łatwo może prowadzić do monitorowania i profilowania pracowników. Firma musi więc nie tylko chronić dane klientów i kierowców, ale też jasno określić cel ich przetwarzania, ograniczyć zakres zbieranych informacji i zapewnić przejrzystość wobec pracowników. To trudniejsze niż samo wdrożenie technologii, ponieważ wymaga połączenia zgodności prawnej, cyberbezpieczeństwa i akceptacji społecznej.
 
 ---
 
@@ -228,7 +227,7 @@ silnymi w USA) — to nie tylko kwestia prawna, ale i akceptacji społecznej wdr
 - **Ryzyko nadmiernej optymalizacji.** Skupienie wyłącznie na minimalizacji dystansu
   może pomijać czynniki jakościowe (bezpieczeństwo, satysfakcja klienta).
 
-`[TWÓJ WNIOSEK: wskaż, które ryzyko uważasz za najpoważniejsze i zaproponuj sposób jego ograniczenia. Punktowana jest "identyfikacja ryzyk i kompromisów" — pokaż trade-off, np. efektywność vs dobrostan pracownika.]`
+Najpoważniejszym ryzykiem jest moim zdaniem presja wydajnościowa i możliwość nadmiernego monitorowania pracowników. ORION zwiększa efektywność, skraca trasy i obniża koszty, ale jednocześnie może prowadzić do sytuacji, w której kierowca jest oceniany wyłącznie przez pryzmat danych i tempa realizacji dostaw. Kluczowy kompromis polega więc na znalezieniu równowagi między optymalizacją kosztów a dobrostanem pracowników. Ryzyko można ograniczyć przez zasadę „human-in-the-loop", czyli pozostawienie kierowcy możliwości zgłaszania wyjątków, korekty trasy oraz ocenę wyników nie tylko na podstawie algorytmu, ale też warunków drogowych, bezpieczeństwa i jakości obsługi klienta.
 
 ---
 
@@ -255,7 +254,9 @@ dynamicznej w czasie rzeczywistym, integracja z flotą elektryczną (planowanie
 ładowania), łączenie z prognozowaniem popytu oraz potencjalnie z dostawami dronami /
 pojazdami autonomicznymi.
 
-`[TWÓJ WNIOSEK — NAJWAŻNIEJSZA SEKCJA: napisz własną ocenę potencjału rozwiązania w perspektywie 3–5 lat oraz własną rekomendację dla zarządu hipotetycznej polskiej firmy KEP. Tu egzaminator szuka samodzielnego myślenia.]`
+Moim zdaniem w perspektywie 3–5 lat systemy podobne do ORION staną się jednym z kluczowych źródeł przewagi konkurencyjnej w branży KEP. Firmy kurierskie będą konkurować nie tylko ceną i skalą floty, ale coraz bardziej jakością danych, szybkością optymalizacji tras oraz zdolnością do reagowania w czasie rzeczywistym na korki, opóźnienia, zmiany popytu i koszty energii. Największy potencjał widzę w połączeniu AI z flotą elektryczną, predykcją popytu i dynamicznym planowaniem dostaw.
+
+Dla zarządu hipotetycznej polskiej firmy KEP rekomendowałbym rozpoczęcie od pilotażu w jednym dużym mieście, np. Warszawie, Krakowie lub Wrocławiu, zamiast natychmiastowego wdrożenia w całej firmie. Celem pilotażu powinno być sprawdzenie, czy AI realnie zmniejsza liczbę kilometrów, zużycie paliwa lub energii, czas dostaw oraz liczbę nieudanych doręczeń. Równolegle firma powinna inwestować w jakość danych, szkolenia kurierów i zgodność z RODO oraz AI Act. Najważniejsze jest to, aby traktować AI nie jako narzędzie do kontroli pracowników, ale jako system wspierający ich decyzje. Tylko wtedy technologia może przynieść trwałą przewagę biznesową bez zwiększania oporu pracowników i ryzyka reputacyjnego.
 
 ---
 
@@ -277,6 +278,6 @@ pojazdami autonomicznymi.
 - [ ] Min. 3 wiarygodne źródła, w tym: branżowe/raport (McKinsey), naukowe/eksperckie (INFORMS), regulacje/prawo (AI Act, RODO) ✔
 - [ ] Wikipedia nie jest głównym źródłem ✔
 - [ ] Formatowanie: Arial/Times New Roman, 11/12, interlinia 1.5, justowanie, marginesy 2.5 cm, numeracja stron → realizuje `build_docx.py`
-- [ ] Uzupełnione wszystkie sekcje `[TWÓJ WNIOSEK]` — **własna analiza i rekomendacje**
-- [ ] Diagram architektury przerysowany / podpisany
+- [x] Uzupełnione własne wnioski w sekcjach 1–7 (analiza i rekomendacje) — pozostaje 1 opcjonalne wzmocnienie o rynku PL w sekcji 1
+- [ ] Diagram architektury przerysowany / podpisany (opcjonalne, ale punktowane)
 - [ ] Plik wyeksportowany do PDF lub DOCX
