@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ProServ – system zamówień (aplikacja no-code)</title>
+<style>
+  :root{
+    --bg:#f4f6fb; --panel:#ffffff; --ink:#1f2937; --muted:#6b7280;
+    --brand:#2563eb; --brand-d:#1d4ed8; --line:#e5e7eb; --ok:#16a34a;
+    --warn:#d97706; --bad:#dc2626; --soft:#eef2ff;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Segoe UI",system-ui,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+  header{background:var(--brand);color:#fff;padding:16px 24px;display:flex;align-items:center;gap:14px;box-shadow:0 2px 8px rgba(0,0,0,.12)}
+  header .logo{font-size:22px;font-weight:700;letter-spacing:.5px}
+  header .tag{font-size:13px;opacity:.85}
+  .wrap{display:flex;min-height:calc(100vh - 60px)}
+  nav{width:230px;background:var(--panel);border-right:1px solid var(--line);padding:14px 0}
+  nav a{display:flex;align-items:center;gap:10px;padding:12px 22px;color:var(--ink);text-decoration:none;cursor:pointer;font-size:15px;border-left:3px solid transparent}
+  nav a:hover{background:var(--soft)}
+  nav a.active{background:var(--soft);border-left-color:var(--brand);color:var(--brand-d);font-weight:600}
+  nav .ico{width:20px;text-align:center}
+  main{flex:1;padding:26px 32px;overflow:auto}
+  .head{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+  h1{font-size:22px;margin:0}
+  .sub{color:var(--muted);font-size:13px;margin-top:4px}
+  button{font:inherit;cursor:pointer;border:none;border-radius:8px;padding:9px 16px;background:var(--brand);color:#fff;font-weight:600}
+  button:hover{background:var(--brand-d)}
+  button.ghost{background:#fff;color:var(--brand-d);border:1px solid var(--brand)}
+  button.mini{padding:5px 10px;font-size:13px;border-radius:6px}
+  button.del{background:#fff;color:var(--bad);border:1px solid #fecaca}
+  button.del:hover{background:#fef2f2}
+  table{width:100%;border-collapse:collapse;background:var(--panel);border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+  th,td{padding:11px 14px;text-align:left;border-bottom:1px solid var(--line);font-size:14px}
+  th{background:#f9fafb;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.4px}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:#fafbff}
+  .pill{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600}
+  .s-Nowe{background:#dbeafe;color:#1e40af}
+  .s-Wrealizacji{background:#fef3c7;color:#92400e}
+  .s-Zrealizowane{background:#dcfce7;color:#166534}
+  .s-Anulowane{background:#fee2e2;color:#991b1b}
+  .right{text-align:right}
+  /* modal */
+  .ov{position:fixed;inset:0;background:rgba(15,23,42,.5);display:none;align-items:center;justify-content:center;padding:20px;z-index:50}
+  .ov.on{display:flex}
+  .modal{background:#fff;border-radius:14px;width:560px;max-width:100%;max-height:90vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+  .modal h2{margin:0;padding:18px 22px;border-bottom:1px solid var(--line);font-size:18px}
+  form{padding:18px 22px;display:grid;gap:14px}
+  .field{display:flex;flex-direction:column;gap:5px}
+  .field label{font-size:13px;color:var(--muted);font-weight:600}
+  .field input,.field select,.field textarea{font:inherit;padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:#fff}
+  .field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px rgba(37,99,235,.15)}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .actions{display:flex;justify-content:flex-end;gap:10px;padding:6px 22px 20px}
+  .lines{margin:8px 0;border:1px dashed var(--line);border-radius:8px;padding:10px}
+  .lineRow{display:grid;grid-template-columns:1fr 70px 90px 70px 30px;gap:8px;align-items:center;margin-bottom:8px}
+  .lineRow .x{color:var(--bad);cursor:pointer;font-weight:700;text-align:center}
+  .hint{font-size:12px;color:var(--muted)}
+  .empty{padding:40px;text-align:center;color:var(--muted)}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:22px}
+  .kpi{background:var(--panel);border-radius:12px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+  .kpi .v{font-size:26px;font-weight:700;color:var(--brand-d)}
+  .kpi .l{color:var(--muted);font-size:13px;margin-top:4px}
+  .toolbar{display:flex;gap:10px;margin-bottom:14px}
+  .toolbar input{padding:9px 12px;border:1px solid var(--line);border-radius:8px;min-width:240px;font:inherit}
+  footer{padding:14px 32px;color:var(--muted);font-size:12px;border-top:1px solid var(--line);background:var(--panel)}
+</style>
+</head>
+<body>
+<header>
+  <span class="logo">ProServ</span>
+  <span class="tag">System obsługi zamówień · aplikacja no-code (demonstracja Knack/Tadabase)</span>
+</header>
+<div class="wrap">
+  <nav id="nav">
+    <a data-view="pulpit" class="active"><span class="ico">📊</span> Pulpit</a>
+    <a data-view="klient"><span class="ico">👤</span> Klienci</a>
+    <a data-view="usluga"><span class="ico">🛠️</span> Usługi</a>
+    <a data-view="zamowienie"><span class="ico">📦</span> Zamówienia</a>
+    <a data-view="szczegoly"><span class="ico">📋</span> Szczegóły zamówień</a>
+  </nav>
+  <main id="main"></main>
+</div>
+<footer>
+  Dane przechowywane lokalnie w przeglądarce (localStorage). Przycisk „Przywróć dane przykładowe” w Pulpicie resetuje bazę.
+</footer>
+
+<!-- MODAL -->
+<div class="ov" id="ov">
+  <div class="modal">
+    <h2 id="mTitle">Formularz</h2>
+    <div id="mBody"></div>
+  </div>
+</div>
+
+<script>
+/* =========================================================================
+   ProServ – aplikacja no-code odtwarzająca strukturę bazy z MS Access.
+   Cztery "tabele" (kolekcje) z relacjami opartymi na kluczach obcych,
+   formularze do dodawania/edycji/przeglądania oraz pulpit z agregacjami
+   (odpowiednik kwerend złożonych).
+   ========================================================================= */
+
+const SEED = {
+  klient: [
+    {id:1, imie:'Anna', nazwisko:'Kowalska', nazwa_firmy:'', email:'anna.kowalska@gmail.com', telefon:'601234567', adres:'ul. Lipowa 12/4', miasto:'Warszawa', kod_pocztowy:'00-123', data_rejestracji:'2024-01-15'},
+    {id:2, imie:'Piotr', nazwisko:'Nowak', nazwa_firmy:'Nowak Consulting', email:'biuro@nowakconsulting.pl', telefon:'512987654', adres:'ul. Kwiatowa 8', miasto:'Kraków', kod_pocztowy:'30-001', data_rejestracji:'2024-02-03'},
+    {id:3, imie:'Magdalena', nazwisko:'Wiśniewska', nazwa_firmy:'', email:'m.wisniewska@op.pl', telefon:'698112233', adres:'os. Słoneczne 5/12', miasto:'Poznań', kod_pocztowy:'60-200', data_rejestracji:'2024-02-20'},
+    {id:4, imie:'Tomasz', nazwisko:'Zieliński', nazwa_firmy:'TechBud sp. z o.o.', email:'kontakt@techbud.com.pl', telefon:'224556677', adres:'al. Jerozolimskie 99', miasto:'Warszawa', kod_pocztowy:'02-222', data_rejestracji:'2024-03-10'},
+    {id:5, imie:'Katarzyna', nazwisko:'Lewandowska', nazwa_firmy:'', email:'kasia.lewandowska@wp.pl', telefon:'605998877', adres:'ul. Polna 3', miasto:'Gdańsk', kod_pocztowy:'80-100', data_rejestracji:'2024-04-05'},
+    {id:6, imie:'Marek', nazwisko:'Wójcik', nazwa_firmy:'Wójcik Transport', email:'m.wojcik@wojciktrans.pl', telefon:'601456789', adres:'ul. Przemysłowa 14', miasto:'Kraków', kod_pocztowy:'31-200', data_rejestracji:'2024-05-12'},
+    {id:7, imie:'Agnieszka', nazwisko:'Kamińska', nazwa_firmy:'', email:'a.kaminska@gmail.com', telefon:'503221144', adres:'ul. Ogrodowa 7/2', miasto:'Wrocław', kod_pocztowy:'50-300', data_rejestracji:'2024-06-01'}
+  ],
+  usluga: [
+    {id:1, nazwa_uslugi:'Projekt strony WWW', kategoria:'Web', opis:'Projekt graficzny i wdrożenie strony wizytówki', cena_jednostkowa:3500, jednostka:'szt.', czas_realizacji:21},
+    {id:2, nazwa_uslugi:'Pozycjonowanie SEO', kategoria:'Marketing', opis:'Miesięczny pakiet działań SEO', cena_jednostkowa:1200, jednostka:'m-c', czas_realizacji:30},
+    {id:3, nazwa_uslugi:'Logo i identyfikacja', kategoria:'Grafika', opis:'Projekt logo oraz podstawowej identyfikacji wizualnej', cena_jednostkowa:1800, jednostka:'szt.', czas_realizacji:14},
+    {id:4, nazwa_uslugi:'Audyt informatyczny', kategoria:'IT', opis:'Audyt bezpieczeństwa i wydajności infrastruktury IT', cena_jednostkowa:2500, jednostka:'szt.', czas_realizacji:7},
+    {id:5, nazwa_uslugi:'Wsparcie techniczne', kategoria:'IT', opis:'Pakiet godzinowego wsparcia technicznego', cena_jednostkowa:150, jednostka:'godz.', czas_realizacji:1},
+    {id:6, nazwa_uslugi:'Kampania Google Ads', kategoria:'Marketing', opis:'Konfiguracja i prowadzenie kampanii reklamowej', cena_jednostkowa:900, jednostka:'m-c', czas_realizacji:30},
+    {id:7, nazwa_uslugi:'Sklep internetowy', kategoria:'Web', opis:'Wdrożenie sklepu e-commerce na platformie', cena_jednostkowa:7900, jednostka:'szt.', czas_realizacji:45},
+    {id:8, nazwa_uslugi:'Szkolenie z obsługi CMS', kategoria:'Szkolenia', opis:'Szkolenie online z obsługi systemu zarządzania treścią', cena_jednostkowa:600, jednostka:'szt.', czas_realizacji:2}
+  ],
+  zamowienie: [
+    {id:1, id_klienta:1, data_zamowienia:'2024-03-01', status:'Zrealizowane', metoda_platnosci:'Przelew', uwagi:'Strona dla gabinetu kosmetycznego'},
+    {id:2, id_klienta:2, data_zamowienia:'2024-03-15', status:'Zrealizowane', metoda_platnosci:'Przelew', uwagi:'Pakiet startowy dla firmy'},
+    {id:3, id_klienta:4, data_zamowienia:'2024-04-02', status:'W realizacji', metoda_platnosci:'Przelew', uwagi:'Duże wdrożenie e-commerce'},
+    {id:4, id_klienta:3, data_zamowienia:'2024-04-20', status:'Zrealizowane', metoda_platnosci:'BLIK', uwagi:''},
+    {id:5, id_klienta:5, data_zamowienia:'2024-05-08', status:'Nowe', metoda_platnosci:'Karta', uwagi:'Klient prosi o kontakt telefoniczny'},
+    {id:6, id_klienta:6, data_zamowienia:'2024-05-25', status:'W realizacji', metoda_platnosci:'Przelew', uwagi:'Stała obsługa marketingowa'},
+    {id:7, id_klienta:1, data_zamowienia:'2024-06-10', status:'Nowe', metoda_platnosci:'BLIK', uwagi:'Druga współpraca z klientem'},
+    {id:8, id_klienta:2, data_zamowienia:'2024-06-18', status:'Anulowane', metoda_platnosci:'Przelew', uwagi:'Klient zrezygnował'}
+  ],
+  szczegoly: [
+    {id:1, id_zamowienia:1, id_uslugi:1, ilosc:1, cena:3500, rabat:0},
+    {id:2, id_zamowienia:1, id_uslugi:3, ilosc:1, cena:1800, rabat:0.10},
+    {id:3, id_zamowienia:2, id_uslugi:3, ilosc:1, cena:1800, rabat:0},
+    {id:4, id_zamowienia:2, id_uslugi:2, ilosc:3, cena:1200, rabat:0.05},
+    {id:5, id_zamowienia:2, id_uslugi:8, ilosc:1, cena:600, rabat:0},
+    {id:6, id_zamowienia:3, id_uslugi:7, ilosc:1, cena:7900, rabat:0.10},
+    {id:7, id_zamowienia:3, id_uslugi:4, ilosc:1, cena:2500, rabat:0},
+    {id:8, id_zamowienia:3, id_uslugi:5, ilosc:10, cena:150, rabat:0},
+    {id:9, id_zamowienia:4, id_uslugi:1, ilosc:1, cena:3500, rabat:0},
+    {id:10, id_zamowienia:5, id_uslugi:6, ilosc:2, cena:900, rabat:0},
+    {id:11, id_zamowienia:6, id_uslugi:2, ilosc:6, cena:1200, rabat:0.15},
+    {id:12, id_zamowienia:6, id_uslugi:6, ilosc:6, cena:900, rabat:0.15},
+    {id:13, id_zamowienia:7, id_uslugi:5, ilosc:5, cena:150, rabat:0}
+  ]
+};
+
+const KEY='proserv_db_v1';
+let db = load();
+
+function load(){
+  try{const r=localStorage.getItem(KEY); if(r) return JSON.parse(r);}catch(e){}
+  return JSON.parse(JSON.stringify(SEED));
+}
+function save(){localStorage.setItem(KEY, JSON.stringify(db));}
+function reset(){db=JSON.parse(JSON.stringify(SEED)); save(); render();}
+function nextId(coll){return db[coll].reduce((m,r)=>Math.max(m,r.id),0)+1;}
+const zl = n => (n||0).toLocaleString('pl-PL',{minimumFractionDigits:2,maximumFractionDigits:2})+' zł';
+const esc = s => (s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* --- pomocnicze: nazwy z relacji (odpowiednik JOIN) --- */
+const klientNazwa = id => {const k=db.klient.find(x=>x.id==id); return k? (k.imie+' '+k.nazwisko+(k.nazwa_firmy?` (${k.nazwa_firmy})`:'')) : '—';};
+const uslugaNazwa = id => {const u=db.usluga.find(x=>x.id==id); return u? u.nazwa_uslugi : '—';};
+const wartoscPozycji = p => p.ilosc * p.cena * (1 - (p.rabat||0));
+const wartoscZamowienia = idz => db.szczegoly.filter(s=>s.id_zamowienia==idz).reduce((s,p)=>s+wartoscPozycji(p),0);
+
+/* ====================== RENDEROWANIE WIDOKÓW ====================== */
+let view='pulpit';
+const main=document.getElementById('main');
+
+document.getElementById('nav').addEventListener('click',e=>{
+  const a=e.target.closest('a'); if(!a)return;
+  view=a.dataset.view;
+  document.querySelectorAll('nav a').forEach(x=>x.classList.toggle('active',x===a));
+  render();
+});
+
+function render(){({pulpit:renderPulpit,klient:renderKlient,usluga:renderUsluga,zamowienie:renderZamowienie,szczegoly:renderSzczegoly}[view])();}
+
+function renderPulpit(){
+  const aktywne = db.zamowienie.filter(z=>z.status!=='Anulowane');
+  const przychod = aktywne.reduce((s,z)=>s+wartoscZamowienia(z.id),0);
+  // ranking usług (odpowiednik kwerendy złożonej 2)
+  const rank={};
+  db.szczegoly.forEach(p=>{
+    const z=db.zamowienie.find(x=>x.id==p.id_zamowienia); if(!z||z.status==='Anulowane')return;
+    const u=db.usluga.find(x=>x.id==p.id_uslugi); if(!u)return;
+    rank[u.id]=rank[u.id]||{nazwa:u.nazwa_uslugi,kat:u.kategoria,szt:0,kwota:0};
+    rank[u.id].szt+=p.ilosc; rank[u.id].kwota+=wartoscPozycji(p);
+  });
+  const rows=Object.values(rank).sort((a,b)=>b.kwota-a.kwota);
+  main.innerHTML=`
+    <div class="head"><div><h1>Pulpit</h1><div class="sub">Podsumowanie systemu – agregacje odpowiadające kwerendom złożonym z MS Access</div></div>
+      <button class="ghost" onclick="reset()">↺ Przywróć dane przykładowe</button></div>
+    <div class="kpis">
+      <div class="kpi"><div class="v">${db.klient.length}</div><div class="l">Klienci</div></div>
+      <div class="kpi"><div class="v">${db.usluga.length}</div><div class="l">Usługi w katalogu</div></div>
+      <div class="kpi"><div class="v">${db.zamowienie.length}</div><div class="l">Zamówienia</div></div>
+      <div class="kpi"><div class="v">${zl(przychod)}</div><div class="l">Przychód (bez anulowanych)</div></div>
+    </div>
+    <h1 style="font-size:18px">Ranking usług wg przychodu</h1>
+    <table><thead><tr><th>Usługa</th><th>Kategoria</th><th class="right">Sztuk</th><th class="right">Przychód</th></tr></thead><tbody>
+    ${rows.map(r=>`<tr><td>${esc(r.nazwa)}</td><td>${esc(r.kat)}</td><td class="right">${r.szt}</td><td class="right">${zl(r.kwota)}</td></tr>`).join('')}
+    </tbody></table>`;
+}
+
+function renderKlient(){
+  const q=(window._q||'').toLowerCase();
+  const data=db.klient.filter(k=>!q||(k.imie+k.nazwisko+k.nazwa_firmy+k.miasto+k.email).toLowerCase().includes(q));
+  main.innerHTML=`
+    <div class="head"><div><h1>Klienci</h1><div class="sub">Tabela <b>klient</b> · klucz podstawowy: id_klienta</div></div>
+      <button onclick="formKlient()">+ Dodaj klienta</button></div>
+    <div class="toolbar"><input placeholder="Szukaj klienta…" value="${esc(window._q||'')}" oninput="window._q=this.value;renderKlient()"></div>
+    <table><thead><tr><th>ID</th><th>Imię i nazwisko</th><th>Firma</th><th>E-mail</th><th>Telefon</th><th>Miasto</th><th></th></tr></thead><tbody>
+    ${data.length?data.map(k=>`<tr>
+      <td>${k.id}</td><td>${esc(k.imie)} ${esc(k.nazwisko)}</td><td>${esc(k.nazwa_firmy)||'<span class="hint">—</span>'}</td>
+      <td>${esc(k.email)}</td><td>${esc(k.telefon)}</td><td>${esc(k.miasto)}</td>
+      <td class="right"><button class="mini ghost" onclick="formKlient(${k.id})">Edytuj</button>
+      <button class="mini del" onclick="delKlient(${k.id})">Usuń</button></td></tr>`).join('')
+      :`<tr><td colspan="7" class="empty">Brak klientów</td></tr>`}
+    </tbody></table>`;
+}
+
+function renderUsluga(){
+  main.innerHTML=`
+    <div class="head"><div><h1>Usługi</h1><div class="sub">Tabela <b>usluga</b> · klucz podstawowy: id_uslugi</div></div>
+      <button onclick="formUsluga()">+ Dodaj usługę</button></div>
+    <table><thead><tr><th>ID</th><th>Nazwa</th><th>Kategoria</th><th class="right">Cena</th><th>Jedn.</th><th class="right">Czas (dni)</th><th></th></tr></thead><tbody>
+    ${db.usluga.map(u=>`<tr>
+      <td>${u.id}</td><td>${esc(u.nazwa_uslugi)}</td><td>${esc(u.kategoria)}</td><td class="right">${zl(u.cena_jednostkowa)}</td>
+      <td>${esc(u.jednostka)}</td><td class="right">${u.czas_realizacji||''}</td>
+      <td class="right"><button class="mini ghost" onclick="formUsluga(${u.id})">Edytuj</button>
+      <button class="mini del" onclick="delUsluga(${u.id})">Usuń</button></td></tr>`).join('')}
+    </tbody></table>`;
+}
+
+function renderZamowienie(){
+  main.innerHTML=`
+    <div class="head"><div><h1>Zamówienia</h1><div class="sub">Tabela <b>zamowienie</b> · klucz obcy: id_klienta → klient</div></div>
+      <button onclick="formZamowienie()">+ Nowe zamówienie</button></div>
+    <table><thead><tr><th>Nr</th><th>Klient</th><th>Data</th><th>Status</th><th>Płatność</th><th class="right">Poz.</th><th class="right">Wartość</th><th></th></tr></thead><tbody>
+    ${db.zamowienie.map(z=>{const poz=db.szczegoly.filter(s=>s.id_zamowienia==z.id);return `<tr>
+      <td>#${z.id}</td><td>${esc(klientNazwa(z.id_klienta))}</td><td>${esc(z.data_zamowienia)}</td>
+      <td><span class="pill s-${z.status.replace(/\s/g,'')}">${esc(z.status)}</span></td>
+      <td>${esc(z.metoda_platnosci)||''}</td><td class="right">${poz.length}</td><td class="right">${zl(wartoscZamowienia(z.id))}</td>
+      <td class="right"><button class="mini ghost" onclick="formZamowienie(${z.id})">Edytuj</button>
+      <button class="mini del" onclick="delZamowienie(${z.id})">Usuń</button></td></tr>`;}).join('')}
+    </tbody></table>`;
+}
+
+function renderSzczegoly(){
+  main.innerHTML=`
+    <div class="head"><div><h1>Szczegóły zamówień</h1><div class="sub">Tabela <b>szczegoly_zamowienia</b> · relacja M:N (zamowienie ↔ usluga)</div></div></div>
+    <table><thead><tr><th>ID</th><th>Zamówienie</th><th>Usługa</th><th class="right">Ilość</th><th class="right">Cena</th><th class="right">Rabat</th><th class="right">Wartość</th></tr></thead><tbody>
+    ${db.szczegoly.map(p=>`<tr>
+      <td>${p.id}</td><td>#${p.id_zamowienia} – ${esc(klientNazwa((db.zamowienie.find(z=>z.id==p.id_zamowienia)||{}).id_klienta))}</td>
+      <td>${esc(uslugaNazwa(p.id_uslugi))}</td><td class="right">${p.ilosc}</td><td class="right">${zl(p.cena)}</td>
+      <td class="right">${Math.round((p.rabat||0)*100)}%</td><td class="right">${zl(wartoscPozycji(p))}</td></tr>`).join('')}
+    </tbody></table>
+    <p class="hint">Pozycje dodaje się i edytuje bezpośrednio w formularzu zamówienia (zakładka „Zamówienia”).</p>`;
+}
+
+/* ====================== MODAL / FORMULARZE ====================== */
+const ov=document.getElementById('ov'), mTitle=document.getElementById('mTitle'), mBody=document.getElementById('mBody');
+function openModal(t){mTitle.textContent=t; ov.classList.add('on');}
+function closeModal(){ov.classList.remove('on'); mBody.innerHTML='';}
+ov.addEventListener('click',e=>{if(e.target===ov)closeModal();});
+
+function formKlient(id){
+  const k=id?db.klient.find(x=>x.id==id):{};
+  openModal(id?'Edycja klienta':'Nowy klient');
+  mBody.innerHTML=`<form onsubmit="return saveKlient(event,${id||0})">
+    <div class="row2">
+      <div class="field"><label>Imię *</label><input name="imie" required value="${esc(k.imie)}"></div>
+      <div class="field"><label>Nazwisko *</label><input name="nazwisko" required value="${esc(k.nazwisko)}"></div>
+    </div>
+    <div class="field"><label>Nazwa firmy (opcjonalnie)</label><input name="nazwa_firmy" value="${esc(k.nazwa_firmy)}"></div>
+    <div class="row2">
+      <div class="field"><label>E-mail *</label><input type="email" name="email" required value="${esc(k.email)}"></div>
+      <div class="field"><label>Telefon</label><input name="telefon" value="${esc(k.telefon)}"></div>
+    </div>
+    <div class="field"><label>Adres</label><input name="adres" value="${esc(k.adres)}"></div>
+    <div class="row2">
+      <div class="field"><label>Miasto</label><input name="miasto" value="${esc(k.miasto)}"></div>
+      <div class="field"><label>Kod pocztowy</label><input name="kod_pocztowy" value="${esc(k.kod_pocztowy)}"></div>
+    </div>
+    <div class="actions"><button type="button" class="ghost" onclick="closeModal()">Anuluj</button><button>Zapisz</button></div>
+  </form>`;
+}
+function saveKlient(e,id){e.preventDefault();const f=new FormData(e.target);const o=Object.fromEntries(f);
+  if(id){Object.assign(db.klient.find(x=>x.id==id),o);}else{o.id=nextId('klient');o.data_rejestracji=new Date().toISOString().slice(0,10);db.klient.push(o);}
+  save();closeModal();render();return false;}
+function delKlient(id){
+  if(db.zamowienie.some(z=>z.id_klienta==id)){alert('Nie można usunąć: klient ma powiązane zamówienia (więzy integralności).');return;}
+  if(confirm('Usunąć klienta?')){db.klient=db.klient.filter(x=>x.id!=id);save();render();}}
+
+function formUsluga(id){
+  const u=id?db.usluga.find(x=>x.id==id):{jednostka:'szt.'};
+  openModal(id?'Edycja usługi':'Nowa usługa');
+  mBody.innerHTML=`<form onsubmit="return saveUsluga(event,${id||0})">
+    <div class="field"><label>Nazwa usługi *</label><input name="nazwa_uslugi" required value="${esc(u.nazwa_uslugi)}"></div>
+    <div class="row2">
+      <div class="field"><label>Kategoria</label><input name="kategoria" value="${esc(u.kategoria)}" list="kat">
+        <datalist id="kat"><option>Web</option><option>Marketing</option><option>Grafika</option><option>IT</option><option>Szkolenia</option></datalist></div>
+      <div class="field"><label>Jednostka</label><select name="jednostka">
+        ${['szt.','godz.','m-c'].map(j=>`<option ${u.jednostka==j?'selected':''}>${j}</option>`).join('')}</select></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>Cena jednostkowa (zł) *</label><input type="number" step="0.01" min="0" name="cena_jednostkowa" required value="${u.cena_jednostkowa??''}"></div>
+      <div class="field"><label>Czas realizacji (dni)</label><input type="number" min="0" name="czas_realizacji" value="${u.czas_realizacji??''}"></div>
+    </div>
+    <div class="field"><label>Opis</label><textarea name="opis" rows="2">${esc(u.opis)}</textarea></div>
+    <div class="actions"><button type="button" class="ghost" onclick="closeModal()">Anuluj</button><button>Zapisz</button></div>
+  </form>`;
+}
+function saveUsluga(e,id){e.preventDefault();const o=Object.fromEntries(new FormData(e.target));
+  o.cena_jednostkowa=parseFloat(o.cena_jednostkowa);o.czas_realizacji=o.czas_realizacji?parseInt(o.czas_realizacji):null;
+  if(id){Object.assign(db.usluga.find(x=>x.id==id),o);}else{o.id=nextId('usluga');db.usluga.push(o);}
+  save();closeModal();render();return false;}
+function delUsluga(id){
+  if(db.szczegoly.some(s=>s.id_uslugi==id)){alert('Nie można usunąć: usługa występuje w zamówieniach.');return;}
+  if(confirm('Usunąć usługę?')){db.usluga=db.usluga.filter(x=>x.id!=id);save();render();}}
+
+let tmpLines=[];
+function formZamowienie(id){
+  const z=id?db.zamowienie.find(x=>x.id==id):{status:'Nowe',data_zamowienia:new Date().toISOString().slice(0,10)};
+  tmpLines=id?JSON.parse(JSON.stringify(db.szczegoly.filter(s=>s.id_zamowienia==id))):[];
+  openModal(id?`Edycja zamówienia #${id}`:'Nowe zamówienie');
+  mBody.innerHTML=`<form onsubmit="return saveZamowienie(event,${id||0})">
+    <div class="field"><label>Klient *</label><select name="id_klienta" required>
+      <option value="">— wybierz —</option>
+      ${db.klient.map(k=>`<option value="${k.id}" ${z.id_klienta==k.id?'selected':''}>${esc(klientNazwa(k.id))}</option>`).join('')}</select></div>
+    <div class="row2">
+      <div class="field"><label>Data zamówienia</label><input type="date" name="data_zamowienia" value="${esc(z.data_zamowienia)}"></div>
+      <div class="field"><label>Status</label><select name="status">
+        ${['Nowe','W realizacji','Zrealizowane','Anulowane'].map(s=>`<option ${z.status==s?'selected':''}>${s}</option>`).join('')}</select></div>
+    </div>
+    <div class="field"><label>Metoda płatności</label><select name="metoda_platnosci">
+      <option value="">—</option>${['Przelew','Karta','Gotówka','BLIK'].map(m=>`<option ${z.metoda_platnosci==m?'selected':''}>${m}</option>`).join('')}</select></div>
+    <div class="field"><label>Uwagi</label><textarea name="uwagi" rows="2">${esc(z.uwagi)}</textarea></div>
+    <div class="field"><label>Pozycje zamówienia (usługi)</label>
+      <div class="lines" id="lines"></div>
+      <button type="button" class="mini ghost" onclick="addLine()">+ Dodaj pozycję</button>
+    </div>
+    <div class="actions"><button type="button" class="ghost" onclick="closeModal()">Anuluj</button><button>Zapisz zamówienie</button></div>
+  </form>`;
+  drawLines();
+}
+function drawLines(){
+  const el=document.getElementById('lines');
+  el.innerHTML=`<div class="lineRow"><span class="hint">Usługa</span><span class="hint">Ilość</span><span class="hint">Cena</span><span class="hint">Rabat%</span><span></span></div>`+
+  (tmpLines.length?tmpLines.map((l,i)=>`<div class="lineRow">
+    <select onchange="lineChg(${i},'id_uslugi',this.value)">
+      ${db.usluga.map(u=>`<option value="${u.id}" ${l.id_uslugi==u.id?'selected':''}>${esc(u.nazwa_uslugi)}</option>`).join('')}</select>
+    <input type="number" min="1" value="${l.ilosc}" onchange="lineChg(${i},'ilosc',this.value)">
+    <input type="number" step="0.01" min="0" value="${l.cena}" onchange="lineChg(${i},'cena',this.value)">
+    <input type="number" min="0" max="100" value="${Math.round((l.rabat||0)*100)}" onchange="lineChg(${i},'rabat',this.value)">
+    <span class="x" onclick="rmLine(${i})">✕</span></div>`).join('')
+    :`<div class="hint">Brak pozycji – dodaj usługę przyciskiem poniżej.</div>`);
+}
+function addLine(){const u=db.usluga[0];tmpLines.push({id_uslugi:u.id,ilosc:1,cena:u.cena_jednostkowa,rabat:0});drawLines();}
+function rmLine(i){tmpLines.splice(i,1);drawLines();}
+function lineChg(i,f,v){
+  if(f==='rabat'){tmpLines[i].rabat=Math.min(100,Math.max(0,parseFloat(v)||0))/100;}
+  else if(f==='ilosc'){tmpLines[i].ilosc=Math.max(1,parseInt(v)||1);}
+  else if(f==='cena'){tmpLines[i].cena=parseFloat(v)||0;}
+  else if(f==='id_uslugi'){tmpLines[i].id_uslugi=parseInt(v);const u=db.usluga.find(x=>x.id==v);if(u)tmpLines[i].cena=u.cena_jednostkowa;drawLines();}
+}
+function saveZamowienie(e,id){e.preventDefault();const o=Object.fromEntries(new FormData(e.target));o.id_klienta=parseInt(o.id_klienta);
+  if(id){Object.assign(db.zamowienie.find(x=>x.id==id),o);db.szczegoly=db.szczegoly.filter(s=>s.id_zamowienia!=id);}
+  else{o.id=nextId('zamowienie');db.zamowienie.push(o);}
+  const zid=id||o.id;
+  tmpLines.forEach(l=>db.szczegoly.push({id:nextId('szczegoly'),id_zamowienia:zid,id_uslugi:parseInt(l.id_uslugi),ilosc:l.ilosc,cena:l.cena,rabat:l.rabat}));
+  save();closeModal();render();return false;}
+function delZamowienie(id){if(confirm('Usunąć zamówienie wraz z pozycjami?')){
+  db.zamowienie=db.zamowienie.filter(x=>x.id!=id);db.szczegoly=db.szczegoly.filter(s=>s.id_zamowienia!=id);save();render();}}
+
+render();
+</script>
+</body>
+</html>
