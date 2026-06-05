@@ -19,7 +19,7 @@ import sys
 
 from docx import Document
 from docx.enum.text import WD_ALIGN_PARAGRAPH
-from docx.enum.table import WD_TABLE_ALIGNMENT
+from docx.enum.table import WD_TABLE_ALIGNMENT, WD_ROW_HEIGHT_RULE
 from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
 from docx.shared import Pt, Cm, RGBColor
@@ -35,6 +35,32 @@ def set_cell_bg(cell, color):
     shd.set(qn("w:val"), "clear")
     shd.set(qn("w:fill"), color)
     tcPr.append(shd)
+
+
+def add_screenshot_slot(doc, caption, height_cm=7.0):
+    """Pusta, ramkowana „klatka” na zrzut ekranu + podpis pod nią."""
+    tbl = doc.add_table(rows=1, cols=1)
+    tbl.style = "Table Grid"
+    tbl.alignment = WD_TABLE_ALIGNMENT.CENTER
+    row = tbl.rows[0]
+    row.height = Cm(height_cm)
+    row.height_rule = WD_ROW_HEIGHT_RULE.AT_LEAST
+    cell = tbl.cell(0, 0)
+    set_cell_bg(cell, "F2F2F2")
+    p = cell.paragraphs[0]
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    r = p.add_run("[ miejsce na zrzut ekranu – wklej tutaj obraz ]")
+    r.italic = True
+    r.font.size = Pt(10)
+    r.font.color.rgb = RGBColor(0x9A, 0x9A, 0x9A)
+    # podpis rysunku
+    cap = doc.add_paragraph()
+    cap.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    cap.paragraph_format.space_before = Pt(2)
+    cr = cap.add_run(caption)
+    cr.italic = True
+    cr.font.size = Pt(10)
+    doc.add_paragraph()
 
 
 def add_page_numbers(section):
@@ -129,6 +155,13 @@ def main():
     n = len(lines)
     while i < n:
         line = lines[i]
+
+        # slot na zrzut ekranu:  [[SCREENSHOT: podpis]]
+        m_ss = re.match(r"^\s*\[\[SCREENSHOT:\s*(.+?)\]\]\s*$", line)
+        if m_ss:
+            add_screenshot_slot(doc, m_ss.group(1))
+            i += 1
+            continue
 
         # blok kodu
         if line.strip().startswith("```"):

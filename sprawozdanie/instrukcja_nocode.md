@@ -5,6 +5,18 @@ Instrukcja opisuje, jak odtworzyć bazę „ProServ” w platformie **Knack.com*
 wykonywania rób **zrzuty ekranu** w miejscach oznaczonych 📸 – posłużą jako
 ilustracje w sprawozdaniu.
 
+## Szacowany czas wykonania (≈ 60–90 min)
+
+| Etap | Czas |
+|---|---|
+| A. Założenie konta i aplikacji | ~5 min |
+| B. Cztery obiekty i pola | ~20–25 min |
+| C. Relacje (Connection) i pola obliczeniowe | ~10 min |
+| D. Import danych z CSV | ~10 min |
+| E. Strony i formularze | ~15 min |
+| Zrzuty ekranu + testy | ~10 min |
+| **Razem** | **~60–90 min** (osoba robiąca to pierwszy raz) |
+
 ---
 
 ## A. Założenie konta i aplikacji

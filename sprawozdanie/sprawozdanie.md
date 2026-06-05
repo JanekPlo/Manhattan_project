@@ -63,6 +63,10 @@ danych programu Access**, zapisując ją jako `ProServ.accdb`. Następnie w wido
 projektu (**Projekt tabeli**) definiuje się kolejne tabele, ich pola, typy danych
 oraz klucze podstawowe.
 
+> Gotowa baza znajduje się w dołączonym pliku **`ProServ.accdb`**, dlatego część
+> dotyczącą MS Access udokumentowano opisowo (bez zrzutów ekranu) – strukturę,
+> relacje, dane i kwerendy można sprawdzić bezpośrednio w tym pliku.
+
 Poniżej przedstawiono strukturę każdej z czterech tabel wraz z typami danych
 używanymi w MS Access. W nawiasach podano odpowiadające im typy w zapisie SQL
 zastosowane w skryptach projektu.
@@ -335,7 +339,8 @@ ORDER BY przychod DESC;
 Zgodnie z wymaganiem, tę samą strukturę odtworzono w środowisku no-code –
 w platformie **Knack.com** (analogicznie można wykonać w **Tadabase.io**).
 Poniżej opisano procedurę; pełną instrukcję „klik po kliku” wraz z listą
-zrzutów ekranu zawiera załącznik **`instrukcja_nocode.md`**.
+zrzutów ekranu zawiera załącznik **`instrukcja_nocode.md`**. Szacowany czas
+odtworzenia całości w Knack.com to około **60–90 minut**.
 
 ### 6.1. Procedura odtworzenia w Knack.com
 
@@ -385,8 +390,17 @@ Kluczem do poprawnego odtworzenia bazy jest świadome odwzorowanie pojęć:
 
 Po wykonaniu tych kroków w Knack istnieją cztery obiekty z identycznym zestawem
 pól jak w MS Access oraz trzy relacje (Connection) odpowiadające relacjom z bazy
-Access. Zrzuty ekranu z gotowej aplikacji (rysunki 1–7 wg listy w
-`instrukcja_nocode.md`) dokumentują strukturę, relacje, dane i formularze.
+Access. Poniższe zrzuty ekranu dokumentują kolejne etapy pracy w Knack.com.
+
+[[SCREENSHOT: Rys. 1 – Środowisko Builder po utworzeniu aplikacji ProServ w Knack.com]]
+
+[[SCREENSHOT: Rys. 2 – Lista pól obiektu Klient (oraz Usluga) odwzorowująca strukturę tabel z MS Access]]
+
+[[SCREENSHOT: Rys. 3 – Tworzenie relacji za pomocą pola Connection (Zamowienie → Klient)]]
+
+[[SCREENSHOT: Rys. 4 – Konfiguracja pola obliczeniowego Sum (wartość zamówienia)]]
+
+[[SCREENSHOT: Rys. 5 – Tabela Zamowienie z zaimportowanymi danymi i kolumną wartości]]
 
 ---
 
@@ -421,6 +435,10 @@ Najważniejsze cechy formularzy zapewniające intuicyjność:
   usuwa jego pozycje (odpowiednik więzów `RESTRICT`/`CASCADE`).
 - **Wartości wyliczane na bieżąco** – wartość pozycji i suma zamówienia liczone
   są automatycznie.
+
+[[SCREENSHOT: Rys. 6 – Formularz dodawania/edycji zamówienia z listą wyboru klienta i pozycjami]]
+
+[[SCREENSHOT: Rys. 7 – Działająca aplikacja w widoku użytkownika (Live App)]]
 
 ---
 
