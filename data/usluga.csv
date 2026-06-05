@@ -1,0 +1,9 @@
+﻿id_uslugi,nazwa_uslugi,kategoria,opis,cena_jednostkowa,jednostka,czas_realizacji
+1,Projekt strony WWW,Web,Projekt graficzny i wdrożenie strony wizytówki,3500.0,szt.,21
+2,Pozycjonowanie SEO,Marketing,Miesięczny pakiet działań SEO,1200.0,m-c,30
+3,Logo i identyfikacja,Grafika,Projekt logo oraz podstawowej identyfikacji wizualnej,1800.0,szt.,14
+4,Audyt informatyczny,IT,Audyt bezpieczeństwa i wydajności infrastruktury IT,2500.0,szt.,7
+5,Wsparcie techniczne,IT,Pakiet godzinowego wsparcia technicznego,150.0,godz.,1
+6,Kampania Google Ads,Marketing,Konfiguracja i prowadzenie kampanii reklamowej,900.0,m-c,30
+7,Sklep internetowy,Web,Wdrożenie sklepu e-commerce na platformie,7900.0,szt.,45
+8,Szkolenie z obsługi CMS,Szkolenia,Szkolenie online z obsługi systemu zarządzania treścią,600.0,szt.,2

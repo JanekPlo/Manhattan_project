@@ -1,0 +1,9 @@
+﻿id_zamowienia,id_klienta,data_zamowienia,status,metoda_platnosci,uwagi
+1,1,2024-03-01,Zrealizowane,Przelew,Strona dla gabinetu kosmetycznego
+2,2,2024-03-15,Zrealizowane,Przelew,Pakiet startowy dla firmy
+3,4,2024-04-02,W realizacji,Przelew,Duże wdrożenie e-commerce
+4,3,2024-04-20,Zrealizowane,BLIK,
+5,5,2024-05-08,Nowe,Karta,Klient prosi o kontakt telefoniczny
+6,6,2024-05-25,W realizacji,Przelew,Stała obsługa marketingowa
+7,1,2024-06-10,Nowe,BLIK,Druga współpraca z klientem
+8,2,2024-06-18,Anulowane,Przelew,Klient zrezygnował

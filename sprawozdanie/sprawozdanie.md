@@ -459,7 +459,9 @@ podstawę systemu informatycznego w zarządzaniu.
 | `sql/02_dane.sql` | przykładowe dane testowe |
 | `sql/03_kwerendy.sql` | cztery kwerendy (2 proste, 2 złożone) – wersja ogólna/SQLite |
 | `sql/kwerendy_ms_access.sql` | te same kwerendy w dialekcie MS Access (do wklejenia) |
+| `data/*.csv` | dane czterech tabel w formacie CSV (import do Access/Knack) |
 | `build_db.py` | skrypt budujący i weryfikujący bazę z plików SQL |
+| `generate_csv.py` | eksport danych do plików CSV |
 | `baza_proserv.sqlite` | pomocnicza, zbudowana baza do automatycznej weryfikacji |
 | `sprawozdanie/instrukcja_nocode.md` | instrukcja krok po kroku odtworzenia w Knack/Tadabase |
 | `sprawozdanie/sprawozdanie.md` | niniejsze sprawozdanie (źródło) |

@@ -1,0 +1,8 @@
+﻿id_klienta,imie,nazwisko,nazwa_firmy,email,telefon,adres,miasto,kod_pocztowy,data_rejestracji
+1,Anna,Kowalska,,anna.kowalska@gmail.com,601234567,ul. Lipowa 12/4,Warszawa,00-123,2024-01-15
+2,Piotr,Nowak,Nowak Consulting,biuro@nowakconsulting.pl,512987654,ul. Kwiatowa 8,Kraków,30-001,2024-02-03
+3,Magdalena,Wiśniewska,,m.wisniewska@op.pl,698112233,os. Słoneczne 5/12,Poznań,60-200,2024-02-20
+4,Tomasz,Zieliński,TechBud sp. z o.o.,kontakt@techbud.com.pl,224556677,al. Jerozolimskie 99,Warszawa,02-222,2024-03-10
+5,Katarzyna,Lewandowska,,kasia.lewandowska@wp.pl,605998877,ul. Polna 3,Gdańsk,80-100,2024-04-05
+6,Marek,Wójcik,Wójcik Transport,m.wojcik@wojciktrans.pl,601456789,ul. Przemysłowa 14,Kraków,31-200,2024-05-12
+7,Agnieszka,Kamińska,,a.kaminska@gmail.com,503221144,ul. Ogrodowa 7/2,Wrocław,50-300,2024-06-01

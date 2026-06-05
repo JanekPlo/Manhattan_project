@@ -18,6 +18,10 @@ sprawozdaniem.
 │   ├── 02_dane.sql                 # dane przykładowe
 │   ├── 03_kwerendy.sql             # 4 kwerendy (2 proste, 2 złożone) – wersja ogólna
 │   └── kwerendy_ms_access.sql      # te same 4 kwerendy w dialekcie MS Access
+├── data/                           # dane w CSV (import do Access/Knack) + instrukcja
+│   ├── klient.csv, usluga.csv, zamowienie.csv, szczegoly_zamowienia.csv
+│   └── README.md                   # jak zaimportować CSV (Knack i Access)
+├── generate_csv.py                 # eksport danych do CSV
 └── sprawozdanie/
     ├── sprawozdanie.md             # sprawozdanie (źródło)
     ├── sprawozdanie.docx           # sprawozdanie do druku  ← PRACA DO ODDANIA

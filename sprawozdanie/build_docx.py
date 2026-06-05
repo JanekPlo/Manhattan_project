@@ -72,6 +72,45 @@ def style_normal(doc):
     pf.space_after = Pt(6)
 
 
+def _center(doc, text, size=12, bold=False, italic=False, before=0, after=0, caps=False):
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p.paragraph_format.line_spacing = 1.0
+    p.paragraph_format.space_before = Pt(before)
+    p.paragraph_format.space_after = Pt(after)
+    r = p.add_run(text.upper() if caps else text)
+    r.font.name = "Times New Roman"; r.font.size = Pt(size)
+    r.bold = bold; r.italic = italic
+    return p
+
+
+def add_title_page(doc):
+    """Strona tytułowa z miejscami do uzupełnienia (……)."""
+    _center(doc, "……………………………………………………………", size=12, before=0, after=2)
+    _center(doc, "(nazwa uczelni / wydziału)", size=10, italic=True, after=30)
+
+    _center(doc, "Informatyka w zarządzaniu", size=14, after=2)
+    _center(doc, "57 MC – FIR", size=11, italic=True, after=70)
+
+    _center(doc, "SPRAWOZDANIE Z PROJEKTU", size=13, bold=True, after=10)
+    _center(doc, "Projekt i implementacja relacyjnej bazy danych "
+                 "systemu obsługi zamówień firmy usługowej "
+                 "oraz jej odtworzenie w aplikacji no-code (Knack.com)",
+            size=17, bold=True, after=80)
+
+    _center(doc, "Autor: ………………………………………………", size=12, after=6)
+    _center(doc, "Nr indeksu: ……………………        Grupa: ……………………", size=12, after=6)
+    _center(doc, "Kierunek / tryb studiów: ………………………………", size=12, after=40)
+
+    _center(doc, "Prowadzący: ………………………………………………", size=12, after=80)
+
+    _center(doc, "………………………………, rok akademicki 2025/2026", size=12, after=2)
+    _center(doc, "(miejscowość)", size=10, italic=True)
+
+    # twardy podział strony – treść zaczyna się na nowej stronie
+    doc.add_page_break()
+
+
 def main():
     src = sys.argv[1] if len(sys.argv) > 1 else SRC
     out = sys.argv[2] if len(sys.argv) > 2 else OUT
@@ -81,8 +120,10 @@ def main():
     doc = Document()
     for s in doc.sections:
         s.top_margin = s.bottom_margin = s.left_margin = s.right_margin = Cm(2.5)
+        s.different_first_page_header_footer = True   # bez numeru na stronie tytułowej
         add_page_numbers(s)
     style_normal(doc)
+    add_title_page(doc)
 
     i = 0
     n = len(lines)
