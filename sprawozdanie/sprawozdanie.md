@@ -394,7 +394,7 @@ Access. Poniższe zrzuty ekranu dokumentują kolejne etapy pracy w Knack.com.
 
 [[SCREENSHOT: Rys. 1 – Środowisko Builder po utworzeniu aplikacji ProServ w Knack.com]]
 
-[[SCREENSHOT: Rys. 2 – Lista pól obiektu Klient (oraz Usluga) odwzorowująca strukturę tabel z MS Access]]
+[[SCREENSHOT: Rys. 2 – Import danych z pliku CSV i automatyczne utworzenie pól wraz z typami (na przykładzie tabeli usluga)]]
 
 [[SCREENSHOT: Rys. 3 – Tworzenie relacji za pomocą pola Connection (Zamowienie → Klient)]]
 
