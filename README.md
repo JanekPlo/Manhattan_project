@@ -1,27 +1,37 @@
 # Projekt bazy danych – system zamówień firmy usługowej „ProServ”
 
 Projekt na przedmiot **57 MC – FIR – Informatyka w zarządzaniu**.
-Relacyjna baza danych obsługi zamówień firmy usługowej, odtworzona dodatkowo w
-aplikacji no-code, wraz z formularzami i pełnym sprawozdaniem.
+Relacyjna baza danych obsługi zamówień firmy usługowej w MS Access, odtworzona
+w aplikacji no-code (Knack/Tadabase), wraz z kwerendami, formularzami i pełnym
+sprawozdaniem.
 
 ## Struktura projektu
 
 ```
 .
-├── README.md                     # ten plik
-├── build_db.py                   # buduje i weryfikuje bazę z plików SQL
-├── baza_proserv.sqlite           # gotowa baza (generowana przez build_db.py)
+├── README.md                       # ten plik
+├── ProServ.accdb                   # GOTOWA baza MS Access (4 tabele, relacje, dane)
+├── build_db.py                     # buduje i weryfikuje bazę z plików SQL
+├── baza_proserv.sqlite             # pomocnicza baza do weryfikacji (generowana)
 ├── sql/
-│   ├── 01_schema.sql             # 4 tabele, klucze, relacje, więzy integralności
-│   ├── 02_dane.sql               # dane przykładowe
-│   └── 03_kwerendy.sql           # 4 kwerendy (2 proste, 2 złożone)
-├── nocode-app/
-│   └── index.html                # działająca aplikacja no-code z formularzami
+│   ├── 01_schema.sql               # 4 tabele, klucze, relacje, więzy integralności
+│   ├── 02_dane.sql                 # dane przykładowe
+│   ├── 03_kwerendy.sql             # 4 kwerendy (2 proste, 2 złożone) – wersja ogólna
+│   └── kwerendy_ms_access.sql      # te same 4 kwerendy w dialekcie MS Access
 └── sprawozdanie/
-    ├── sprawozdanie.md           # sprawozdanie (źródło)
-    ├── sprawozdanie.docx         # sprawozdanie do druku
-    └── build_docx.py             # generator pliku .docx
+    ├── sprawozdanie.md             # sprawozdanie (źródło)
+    ├── sprawozdanie.docx           # sprawozdanie do druku  ← PRACA DO ODDANIA
+    ├── instrukcja_nocode.md        # instrukcja krok po kroku: Knack / Tadabase
+    └── build_docx.py               # generator pliku .docx
 ```
+
+## Co oddać prowadzącemu
+
+1. **`sprawozdanie/sprawozdanie.docx`** – główny dokument pracy.
+2. **`ProServ.accdb`** – plik bazy MS Access.
+
+Część no-code wykonuje się w Knack.com (lub Tadabase.io) wg
+`sprawozdanie/instrukcja_nocode.md` i dokumentuje zrzutami ekranu w sprawozdaniu.
 
 ## Model danych
 
@@ -31,20 +41,17 @@ Cztery tabele w relacjach 1:∞ (oraz wiele-do-wielu przez tabelę pośredniczą
 klient  1───∞  zamowienie  1───∞  szczegoly_zamowienia  ∞───1  usluga
 ```
 
-## Uruchomienie
+## Uruchomienie / weryfikacja
 
-**Baza danych i kwerendy** (wymaga Pythona 3, bez dodatkowych bibliotek):
+**Baza MS Access:** otwórz `ProServ.accdb` w programie MS Access. Kwerendy
+utworzysz, wklejając zapytania z `sql/kwerendy_ms_access.sql`
+(Tworzenie → Projekt kwerendy → Widok SQL → wklej → Uruchom).
+
+**Automatyczna weryfikacja** (Python 3, bez dodatkowych bibliotek):
 
 ```bash
-python3 build_db.py
+python3 build_db.py     # tworzy baza_proserv.sqlite i wypisuje wyniki 4 kwerend
 ```
-
-Skrypt tworzy `baza_proserv.sqlite`, sprawdza więzy integralności i wypisuje
-wyniki czterech kwerend.
-
-**Aplikacja no-code** – otwórz `nocode-app/index.html` w przeglądarce.
-Pozwala dodawać, edytować i przeglądać klientów, usługi i zamówienia
-(z dynamicznymi pozycjami). Dane zapisywane są lokalnie w przeglądarce.
 
 **Sprawozdanie .docx** (wymaga `pip install python-docx`):
 
@@ -56,7 +63,7 @@ cd sprawozdanie && python3 build_docx.py
 
 | MS Access | SQL (ten projekt) | Knack/Tadabase |
 |---|---|---|
-| Autonumerowanie (PK) | `INTEGER PRIMARY KEY AUTOINCREMENT` | pole ID |
+| Autonumerowanie (PK) | `INTEGER PRIMARY KEY AUTOINCREMENT` | wbudowane pole ID |
 | Klucz obcy + relacja | `FOREIGN KEY ... REFERENCES` | pole *Connection* |
 | Kwerenda wybierająca | `SELECT ... WHERE` | filtr widoku |
 | Kwerenda złożona | `JOIN` + `GROUP BY` | pole *Equation/Sum*, widok z grupowaniem |

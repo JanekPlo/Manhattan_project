@@ -46,12 +46,13 @@ sama usługa może występować w wielu zamówieniach (relacja **wiele-do-wielu*
 rozwiązana tabelą pośredniczącą `szczegoly_zamowienia`).
 
 > **Uwaga metodyczna.** Zadanie zakładało wykonanie bazy w MS Access oraz w
-> aplikacji no-code. Aby projekt był w pełni **weryfikowalny i powtarzalny**,
-> strukturę bazy zapisano dodatkowo w postaci skryptów SQL oraz zbudowano z nich
-> działającą bazę (plik `baza_proserv.sqlite`), a warstwę no-code odtworzono jako
-> samodzielną, działającą aplikację webową (`nocode-app/index.html`). Składnia
-> SQL i typy danych zostały dobrane tak, aby odpowiadały rozwiązaniom MS Access –
-> mapowanie typów opisano w kroku 1.
+> aplikacji no-code. Bazę wykonano w MS Access (plik **`ProServ.accdb`**,
+> format Access 2016, dołączony do pracy), a warstwę no-code odtworzono w
+> platformie **Knack.com**, której procedurę odtworzenia opisano krok po kroku
+> w załączniku `instrukcja_nocode.md`. Dodatkowo strukturę bazy zapisano w
+> postaci skryptów SQL, co pozwala odtworzyć i automatycznie zweryfikować całość
+> (skrypt `build_db.py`). Mapowanie typów danych MS Access ↔ SQL ↔ Knack
+> opisano w kolejnych krokach.
 
 ---
 
@@ -331,10 +332,10 @@ ORDER BY przychod DESC;
 
 ## 6. Krok 5 – Odtworzenie struktury w aplikacji no-code
 
-Zgodnie z wymaganiem, tę samą strukturę odtworzono w środowisku no-code. Poniżej
-opisano procedurę dla platformy **Knack.com** (analogicznie postępuje się w
-**Tadabase.io**), a następnie przedstawiono **działającą aplikację demonstracyjną**
-dołączoną do projektu.
+Zgodnie z wymaganiem, tę samą strukturę odtworzono w środowisku no-code –
+w platformie **Knack.com** (analogicznie można wykonać w **Tadabase.io**).
+Poniżej opisano procedurę; pełną instrukcję „klik po kliku” wraz z listą
+zrzutów ekranu zawiera załącznik **`instrukcja_nocode.md`**.
 
 ### 6.1. Procedura odtworzenia w Knack.com
 
@@ -369,24 +370,23 @@ dołączoną do projektu.
    się polem typu *Equation*, a sumę wartości zamówienia – polem *Sum* po
    powiązanych pozycjach (odpowiednik kwerendy złożonej).
 
-### 6.2. Dołączona działająca aplikacja demonstracyjna
+### 6.2. Odwzorowanie pojęć MS Access w Knack
 
-Aby projekt był w pełni sprawdzalny bez konta na komercyjnej platformie, do
-sprawozdania dołączono **samodzielną aplikację webową** w pliku
-`nocode-app/index.html`. Odwzorowuje ona dokładnie tę samą strukturę (cztery
-„tabele”, te same pola i relacje oparte na identyfikatorach) i działa w
-przeglądarce bez instalacji – wystarczy otworzyć plik. Dane są przechowywane
-lokalnie (localStorage), a przycisk „Przywróć dane przykładowe” resetuje bazę do
-stanu wyjściowego.
+Kluczem do poprawnego odtworzenia bazy jest świadome odwzorowanie pojęć:
 
-Aplikacja zawiera:
+| MS Access | Knack | Uwaga |
+|---|---|---|
+| Tabela | Object (obiekt) | jeden obiekt = jedna tabela |
+| Pole + typ danych | Field + typ pola | np. Waluta → Currency |
+| Klucz podstawowy (Autonumer) | wbudowane pole ID rekordu | tworzone automatycznie |
+| Klucz obcy + relacja | pole **Connection** | pilnuje spójności (więzy integralności) |
+| Kwerenda złożona (agregacja) | pole **Equation** / **Sum** | wartość pozycji i suma zamówienia |
+| Indeks bez duplikatów | opcja **Must be unique** | np. pole `email` |
 
-- **Pulpit** z miarami (liczba klientów, usług, zamówień, przychód) oraz
-  rankingiem usług wg przychodu – odpowiednik kwerend złożonych,
-- widoki listowe czterech tabel z odwzorowaniem relacji (np. w zamówieniach
-  wyświetlana jest nazwa klienta zamiast samego identyfikatora – odpowiednik
-  złączenia JOIN),
-- formularze opisane w kroku 6.
+Po wykonaniu tych kroków w Knack istnieją cztery obiekty z identycznym zestawem
+pól jak w MS Access oraz trzy relacje (Connection) odpowiadające relacjom z bazy
+Access. Zrzuty ekranu z gotowej aplikacji (rysunki 1–7 wg listy w
+`instrukcja_nocode.md`) dokumentują strukturę, relacje, dane i formularze.
 
 ---
 
@@ -395,8 +395,9 @@ Aplikacja zawiera:
 W aplikacji no-code utworzono intuicyjne formularze umożliwiające pełną obsługę
 danych (operacje **CRUD**: tworzenie, odczyt, aktualizacja, usuwanie). W Knack
 formularze tworzy się w sekcji *Pages*, dodając elementy *Form* (dodawanie/edycja)
-oraz *Table/Grid* (przeglądanie). W aplikacji dołączonej do projektu odpowiadają
-im poniższe funkcje:
+oraz *Table/Grid* (przeglądanie); szczegółowy sposób ich utworzenia opisano w
+punkcie E załącznika `instrukcja_nocode.md`. Przygotowano następujące formularze
+i widoki:
 
 | Funkcja | Formularz / widok |
 |---|---|
@@ -453,21 +454,29 @@ podstawę systemu informatycznego w zarządzaniu.
 
 | Plik / katalog | Opis |
 |---|---|
+| **`ProServ.accdb`** | **gotowa baza danych MS Access** (4 tabele, relacje, dane) |
 | `sql/01_schema.sql` | definicja struktury czterech tabel, kluczy i relacji (DDL) |
 | `sql/02_dane.sql` | przykładowe dane testowe |
-| `sql/03_kwerendy.sql` | cztery kwerendy (2 proste, 2 złożone) |
+| `sql/03_kwerendy.sql` | cztery kwerendy (2 proste, 2 złożone) – wersja ogólna/SQLite |
+| `sql/kwerendy_ms_access.sql` | te same kwerendy w dialekcie MS Access (do wklejenia) |
 | `build_db.py` | skrypt budujący i weryfikujący bazę z plików SQL |
-| `baza_proserv.sqlite` | gotowa, zbudowana baza danych (do podglądu/weryfikacji) |
-| `nocode-app/index.html` | działająca aplikacja no-code z formularzami |
+| `baza_proserv.sqlite` | pomocnicza, zbudowana baza do automatycznej weryfikacji |
+| `sprawozdanie/instrukcja_nocode.md` | instrukcja krok po kroku odtworzenia w Knack/Tadabase |
 | `sprawozdanie/sprawozdanie.md` | niniejsze sprawozdanie (źródło) |
 | `sprawozdanie/sprawozdanie.docx` | sprawozdanie w formacie do druku |
 | `README.md` | instrukcja uruchomienia projektu |
 
 **Sposób weryfikacji projektu:**
 
+- Plik **`ProServ.accdb`** otwiera się bezpośrednio w programie MS Access –
+  zawiera cztery tabele, relacje z wymuszonymi więzami integralności oraz dane.
+  Cztery kwerendy tworzy się, wklejając zapytania z pliku
+  `sql/kwerendy_ms_access.sql` (Widok SQL → Uruchom).
+- Niezależną weryfikację poprawności struktury, danych i kwerend zapewnia skrypt:
+
 ```bash
 python3 build_db.py        # buduje bazę i wypisuje wyniki czterech kwerend
 ```
 
-Aplikację no-code uruchamia się przez otwarcie pliku `nocode-app/index.html`
-w dowolnej przeglądarce internetowej.
+- Część no-code wykonuje się w Knack.com (lub Tadabase.io) zgodnie z załącznikiem
+  `instrukcja_nocode.md`; gotową aplikację dokumentuje się zrzutami ekranu.

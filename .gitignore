@@ -1,0 +1,3 @@
+# biblioteki pobierane do budowy ProServ.accdb (Jackcess) – nie wersjonujemy
+.build/lib/
+*.class
