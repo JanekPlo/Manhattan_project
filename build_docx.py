@@ -17,7 +17,7 @@ import re
 import sys
 
 from docx import Document
-from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_BREAK
 from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
@@ -25,6 +25,15 @@ from docx.shared import Pt, Cm, RGBColor
 
 FONT_NAME = "Times New Roman"
 FONT_SIZE = 12
+
+# --- Dane strony tytułowej (edytuj wedle potrzeb) ---
+TP_TITLE = ("Sztuczna inteligencja w optymalizacji łańcucha dostaw\n"
+            "— studium przypadku systemu UPS ORION")
+TP_SUBJECT = ("Temat 01: AI Transformation — transformacja branży logistycznej "
+              "(KEP / last mile) z wykorzystaniem sztucznej inteligencji")
+TP_KIND = "Case study — zaliczenie przedmiotu (praca indywidualna)"
+TP_AUTHOR = "Jan Płoński"          # <-- sprawdź pisownię imienia i nazwiska
+TP_DATE = "Czerwiec 2026"
 
 
 def _force_font(style):
@@ -63,10 +72,21 @@ def set_margins(document):
 
 
 def add_page_numbers(document):
-    """Wstawia pole numeru strony wyśrodkowane w stopce."""
+    """Numeruje strony w stopce; strona tytułowa pozostaje bez numeru.
+
+    Numeracja zaczyna się od 0 na stronie tytułowej (która i tak nie ma stopki),
+    dzięki czemu pierwsza strona treści otrzymuje numer 1.
+    """
     for section in document.sections:
-        footer = section.footer
-        p = footer.paragraphs[0]
+        # różna stopka dla pierwszej strony (tytułowej) -> zostaje pusta
+        section.different_first_page_header_footer = True
+        # numeracja od 0
+        sectPr = section._sectPr
+        pg = OxmlElement("w:pgNumType")
+        pg.set(qn("w:start"), "0")
+        sectPr.append(pg)
+
+        p = section.footer.paragraphs[0]
         p.alignment = WD_ALIGN_PARAGRAPH.CENTER
         run = p.add_run()
         fld_begin = OxmlElement("w:fldChar")
@@ -79,6 +99,40 @@ def add_page_numbers(document):
         run._r.append(fld_begin)
         run._r.append(instr)
         run._r.append(fld_end)
+
+
+def add_title_page(document):
+    """Tworzy stronę tytułową zakończoną podziałem strony."""
+    def centered(text, size, bold=False, italic=False, space_before=0, space_after=0):
+        p = document.add_paragraph()
+        p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        p.paragraph_format.space_before = Pt(space_before)
+        p.paragraph_format.space_after = Pt(space_after)
+        p.paragraph_format.line_spacing = 1.0
+        for j, line in enumerate(text.split("\n")):
+            run = p.add_run(line)
+            run.font.name = FONT_NAME
+            run.font.size = Pt(size)
+            run.bold = bold
+            run.italic = italic
+            if j < len(text.split("\n")) - 1:
+                run.add_break()
+        return p
+
+    # odstęp od góry
+    for _ in range(4):
+        document.add_paragraph()
+    centered(TP_TITLE, 20, bold=True, space_after=14)
+    centered(TP_SUBJECT, 13, italic=True, space_after=30)
+    centered(TP_KIND, 13, space_after=60)
+    for _ in range(4):
+        document.add_paragraph()
+    centered(TP_AUTHOR, 14, bold=True, space_after=6)
+    centered(TP_DATE, 12)
+
+    # podział strony -> treść zaczyna się na nowej stronie
+    br = document.add_paragraph()
+    br.add_run().add_break(WD_BREAK.PAGE)
 
 
 def add_runs_with_bold(paragraph, text):
@@ -272,6 +326,7 @@ def main():
     set_base_style(document)
     set_margins(document)
     add_page_numbers(document)
+    add_title_page(document)
     parse_markdown(document, lines)
     document.save(out)
     print(f"Zapisano: {out}")

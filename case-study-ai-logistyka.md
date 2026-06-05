@@ -1,11 +1,3 @@
-# Sztuczna inteligencja w optymalizacji łańcucha dostaw — studium przypadku systemu UPS ORION
-
-> **Temat:** 01. AI Transformation — transformacja branży logistycznej (KEP / last mile) z wykorzystaniem sztucznej inteligencji
-
-> **Typ pracy:** Case study (praca indywidualna)
-
----
-
 ## Wprowadzenie
 
 Logistyka kuriersko-ekspresowo-paczkowa (KEP) jest jedną z branż, w których przewaga
@@ -60,7 +52,7 @@ darmowej dostawy) i presja środowiskowa. Optymalizacja tras oparta na AI jest j
 nielicznych dźwigni, która **jednocześnie** obniża koszty i emisje — stąd jej
 strategiczne znaczenie.
 
-`[DO UZUPEŁNIENIA — opcjonalne wzmocnienie: odnieś problem do rynku polskiego/europejskiego (InPost, DPD, DHL Parcel). Jak presja na ostatnią milę wygląda w Polsce? 2–3 zdania wystarczą.]`
+Na rynku polskim presja na ostatnią milę jest szczególnie wyraźna ze względu na dynamiczny rozwój e-commerce oraz wysoką popularność dostaw poza domem. InPost zbudował silną pozycję dzięki sieci automatów paczkowych (Paczkomatów), które przenoszą część kosztów i ryzyka ostatniej mili z kuriera na klienta odbierającego przesyłkę samodzielnie. Konkurenci, tacy jak DPD, DHL Parcel czy Orlen Paczka, rozwijają własne sieci punktów odbioru oraz algorytmy planowania tras, aby obniżyć koszt pojedynczego doręczenia. W polskich warunkach — gęsta zabudowa miejska, rozproszone dostawy poza dużymi miastami i rosnące koszty pracy kierowców — optymalizacja tras oparta na AI ma więc bardzo konkretne uzasadnienie ekonomiczne, analogiczne do tego, które stoi za systemem ORION w UPS.
 
 ---
 
