@@ -1,35 +1,32 @@
 #!/usr/bin/env python3
-"""Buduje plik Scratch (.sb3) z programem rysującym symetryczny wzór z półksiężyców.
+"""Buduje plik Scratch (.sb3) z programem rysującym FALĘ z półokręgów.
 
 Program w Scratchu:
-  - po starcie pyta: "Ile figur narysować?"
-  - rysuje podaną liczbę PÓŁKSIĘŻYCÓW (płatków zbudowanych z dwóch łuków)
-    rozłożonych symetrycznie wokół środka -> efekt jak na poleceniu
-  - każdy kolejny półksiężyc jest odrobinę bardziej przezroczysty od poprzedniego
-  - rysuje się powoli (krótkie "czekaj"), więc widać, jak wzór się układa
+  - po starcie pyta: "Ile półokręgów narysować?"
+  - rysuje pionową falę = łańcuch półokręgów `)` wybrzuszonych w tę samą
+    stronę, jeden pod drugim (z dziobkiem/cuspem w punktach łączenia) -
+    dokładnie jak na rysunku
+  - rysuje się powoli (krótkie "czekaj"), więc widać, jak fala powstaje
 
-Półksiężyc/płatek = dwa identyczne łuki + obrót o (180 - łuk) na każdym czubku,
-co domyka kształt (klasyczny "płatek" w Scratchu).
+Jak powstaje jeden półokrąg:
+  pisak jedzie w prawo i zatacza 180 stopni (move + turn right) -> wybrzuszenie
+  w prawo, schodząc o średnicę w dół; potem obrót o 180 stopni (dziobek) i
+  kolejny taki sam półokrąg poniżej.
 """
 import hashlib
 import json
 import zipfile
 
-# Identyfikatory zmiennych globalnych (trzymane na Scenie / Stage)
 VID_COUNT = "var-liczba"
-VID_ANGLE = "var-kat"
 
-# Parametry półksiężyca i tempa rysowania
-KROK = "8"           # długość kroku łuku
-SKRET = 7            # obrót po każdym kroku (stopnie)
-KROKI_LUKU = 20      # liczba kroków jednego łuku
-WAIT_W = "0.01"      # czekaj wewnątrz łuku (większe = wolniej)
-WAIT_Z = "0.1"       # czekaj między kolejnymi figurami
-
-# Kąt obrotu na czubku półksiężyca, który domyka kształt
-TIP = str(180 - KROKI_LUKU * SKRET)   # 180 - 140 = 40 stopni
-SKRET = str(SKRET)
-KROKI_LUKU = str(KROKI_LUKU)
+# Parametry fali i tempa rysowania
+KROK = "5"            # długość kroku
+KROKI_POL = "18"      # ile kroków na jeden półokrąg
+SKRET = "10"          # obrót po kroku (18 * 10 = 180 stopni = półokrąg)
+CUSP = "180"          # obrót w punkcie łączenia (dziobek), by następny też w prawo
+START_Y = "150"       # start u góry sceny, fala schodzi w dół
+WAIT_W = "0.01"       # czekaj wewnątrz półokręgu (większe = wolniej)
+WAIT_Z = "0.05"       # czekaj w punkcie łączenia
 
 
 def var_in(name, vid, default="0"):
@@ -57,28 +54,11 @@ def add(bid, opcode, *, next=None, parent=None, inputs=None, fields=None,
     blocks[bid] = b
 
 
-def arc(prefix, parent, nxt):
-    """Tworzy blok 'powtórz' rysujący jeden łuk; zwraca id bloku 'powtórz'."""
-    rep = prefix + "rep"
-    mv = prefix + "mv"
-    tn = prefix + "tn"
-    wt = prefix + "wt"
-    add(rep, "control_repeat", parent=parent, next=nxt,
-        inputs={"TIMES": [1, [6, KROKI_LUKU]], "SUBSTACK": [2, mv]})
-    add(mv, "motion_movesteps", parent=rep, next=tn,
-        inputs={"STEPS": [1, [4, KROK]]})
-    add(tn, "motion_turnright", parent=mv, next=wt,
-        inputs={"DEGREES": [1, [4, SKRET]]})
-    add(wt, "control_wait", parent=tn,
-        inputs={"DURATION": [1, [5, WAIT_W]]})
-    return rep
-
-
 # --- skrypt główny ---------------------------------------------------------
 add("flag", "event_whenflagclicked", next="ask", top=True, x=40, y=40)
 
 add("ask", "sensing_askandwait", parent="flag", next="clear",
-    inputs={"QUESTION": [1, [10, "Ile figur narysować?"]]})
+    inputs={"QUESTION": [1, [10, "Ile półokręgów narysować?"]]})
 
 add("clear", "pen_clear", parent="ask", next="setcolor")
 
@@ -87,66 +67,40 @@ add("setcolor", "pen_setPenColorToColor", parent="clear", next="setcount",
 
 # liczba <- odpowiedź
 add("answer", "sensing_answer", parent="setcount")
-add("setcount", "data_setvariableto", parent="setcolor", next="settrans",
+add("setcount", "data_setvariableto", parent="setcolor", next="goto",
     inputs={"VALUE": [3, "answer", [10, "0"]]},
     fields={"VARIABLE": ["liczba", VID_COUNT]})
 
-# przezroczystość pióra <- 0
-add("param1", "pen_menu_colorParam", parent="settrans", shadow=True,
-    fields={"colorParam": ["transparency", None]})
-add("settrans", "pen_setPenColorParamTo", parent="setcount", next="setangle",
-    inputs={"COLOR_PARAM": [1, "param1"], "VALUE": [1, [4, "0"]]})
-
-# kat <- 0
-add("setangle", "data_setvariableto", parent="settrans", next="repouter",
-    inputs={"VALUE": [1, [4, "0"]]},
-    fields={"VARIABLE": ["kat", VID_ANGLE]})
-
-# powtórz (liczba) razy -> jeden półksiężyc na obrót
-add("repouter", "control_repeat", parent="setangle",
-    inputs={"TIMES": var_in("liczba", VID_COUNT, "8"),
-            "SUBSTACK": [2, "goto"]})
-
-# --- ciało pętli zewnętrznej: jeden półksiężyc -----------------------------
-add("goto", "motion_gotoxy", parent="repouter", next="point",
-    inputs={"X": [1, [4, "0"]], "Y": [1, [4, "0"]]})
-
-# skieruj w stronę (90 + kat)
-add("addop", "operator_add", parent="point",
-    inputs={"NUM1": [1, [4, "90"]], "NUM2": var_in("kat", VID_ANGLE)})
+# ustaw start u góry i skieruj w prawo (wschód) -> wybrzuszenie pójdzie w prawo
+add("goto", "motion_gotoxy", parent="setcount", next="point",
+    inputs={"X": [1, [4, "0"]], "Y": [1, [4, START_Y]]})
 add("point", "motion_pointindirection", parent="goto", next="pendown",
-    inputs={"DIRECTION": [3, "addop", [8, "90"]]})
+    inputs={"DIRECTION": [1, [8, "90"]]})
 
-add("pendown", "pen_penDown", parent="point", next="arc1rep")
+add("pendown", "pen_penDown", parent="point", next="repouter")
 
-# łuk 1 -> obrót na czubku -> łuk 2 -> obrót na czubku (domyka półksiężyc)
-arc("arc1", "pendown", "tip1")
-add("tip1", "motion_turnright", parent="arc1rep", next="arc2rep",
-    inputs={"DEGREES": [1, [4, TIP]]})
-arc("arc2", "tip1", "tip2")
-add("tip2", "motion_turnright", parent="arc2rep", next="penup",
-    inputs={"DEGREES": [1, [4, TIP]]})
+# powtórz (liczba) razy -> jeden półokrąg na obrót
+add("repouter", "control_repeat", parent="pendown", next="penup",
+    inputs={"TIMES": var_in("liczba", VID_COUNT, "5"),
+            "SUBSTACK": [2, "arcrep"]})
 
-add("penup", "pen_penUp", parent="tip2", next="waitz")
+# jeden półokrąg: powtórz (KROKI_POL) razy [idź krok, obróć, czekaj]
+add("arcrep", "control_repeat", parent="repouter", next="cusp",
+    inputs={"TIMES": [1, [6, KROKI_POL]], "SUBSTACK": [2, "mv"]})
+add("mv", "motion_movesteps", parent="arcrep", next="tn",
+    inputs={"STEPS": [1, [4, KROK]]})
+add("tn", "motion_turnright", parent="mv", next="wt",
+    inputs={"DEGREES": [1, [4, SKRET]]})
+add("wt", "control_wait", parent="tn",
+    inputs={"DURATION": [1, [5, WAIT_W]]})
 
-# krótka pauza między figurami
-add("waitz", "control_wait", parent="penup", next="changeangle",
+# dziobek: obróć o 180 stopni, żeby następny półokrąg też był w prawo
+add("cusp", "motion_turnright", parent="arcrep", next="waitz",
+    inputs={"DEGREES": [1, [4, CUSP]]})
+add("waitz", "control_wait", parent="cusp",
     inputs={"DURATION": [1, [5, WAIT_Z]]})
 
-# kat <- kat + 360/liczba (symetryczne rozłożenie)
-add("divang", "operator_divide", parent="changeangle",
-    inputs={"NUM1": [1, [4, "360"]], "NUM2": var_in("liczba", VID_COUNT, "1")})
-add("changeangle", "data_changevariableby", parent="waitz", next="changetrans",
-    inputs={"VALUE": [3, "divang", [4, "0"]]},
-    fields={"VARIABLE": ["kat", VID_ANGLE]})
-
-# zwiększ przezroczystość o 80/liczba (każdy kolejny bardziej przezroczysty)
-add("param2", "pen_menu_colorParam", parent="changetrans", shadow=True,
-    fields={"colorParam": ["transparency", None]})
-add("divtr", "operator_divide", parent="changetrans",
-    inputs={"NUM1": [1, [4, "80"]], "NUM2": var_in("liczba", VID_COUNT, "1")})
-add("changetrans", "pen_changePenColorParamBy", parent="changeangle",
-    inputs={"COLOR_PARAM": [1, "param2"], "VALUE": [3, "divtr", [4, "0"]]})
+add("penup", "pen_penUp", parent="repouter")
 
 # ---------------------------------------------------------------------------
 # Kostiumy / tła (proste pliki SVG)
@@ -167,10 +121,7 @@ bg_md5 = hashlib.md5(BG_SVG).hexdigest()
 stage = {
     "isStage": True,
     "name": "Stage",
-    "variables": {
-        VID_COUNT: ["liczba", 0],
-        VID_ANGLE: ["kat", 0],
-    },
+    "variables": {VID_COUNT: ["liczba", 0]},
     "lists": {},
     "broadcasts": {},
     "blocks": {},
@@ -235,4 +186,4 @@ with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
     z.writestr(dot_md5 + ".svg", DOT_SVG)
     z.writestr(bg_md5 + ".svg", BG_SVG)
 
-print("Zapisano", out, "| TIP =", TIP)
+print("Zapisano", out)
