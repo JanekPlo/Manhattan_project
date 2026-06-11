@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""Buduje plik Scratch (.sb3) z programem rysującym symetryczny wzór z kwadratów.
+"""Buduje plik Scratch (.sb3) z programem rysującym symetryczny wzór z łuków.
 
 Program w Scratchu:
   - po starcie pyta: "Ile figur narysować?"
-  - rysuje podaną liczbę kwadratów rozłożonych symetrycznie wokół środka
-    (każdy obrócony o 360/liczba stopni -> efekt rozety / kwiatka)
-  - każdy kolejny kwadrat jest odrobinę bardziej przezroczysty od poprzedniego
+  - rysuje podaną liczbę ŁUKÓW (zakręcających płatków) rozłożonych
+    symetrycznie wokół środka -> efekt jak na poleceniu
+  - każdy kolejny łuk jest odrobinę bardziej przezroczysty od poprzedniego
+  - rysuje się powoli (krótkie "czekaj"), więc widać, jak wzór się układa
 """
 import hashlib
 import json
@@ -15,8 +16,12 @@ import zipfile
 VID_COUNT = "var-liczba"
 VID_ANGLE = "var-kat"
 
-# Długość boku kwadratu
-BOK = "100"
+# Parametry łuku i tempa rysowania
+KROK = "10"          # długość kroku łuku
+SKRET = "9"          # obrót po każdym kroku (stopnie) -> krzywizna
+KROKI_LUKU = "26"    # liczba kroków -> łuk zakręca o 26*9 = 234 stopnie
+WAIT_W = "0.02"      # czekaj wewnątrz łuku (im więcej, tym wolniej)
+WAIT_Z = "0.1"       # czekaj między kolejnymi figurami
 
 
 def var_in(name, vid, default="0"):
@@ -72,12 +77,12 @@ add("setangle", "data_setvariableto", parent="settrans", next="repouter",
     inputs={"VALUE": [1, [4, "0"]]},
     fields={"VARIABLE": ["kat", VID_ANGLE]})
 
-# powtórz (liczba) razy -> jedna figura na obrót
+# powtórz (liczba) razy -> jeden łuk na obrót
 add("repouter", "control_repeat", parent="setangle",
-    inputs={"TIMES": var_in("liczba", VID_COUNT, "5"),
+    inputs={"TIMES": var_in("liczba", VID_COUNT, "8"),
             "SUBSTACK": [2, "goto"]})
 
-# --- ciało pętli zewnętrznej: jeden kwadrat --------------------------------
+# --- ciało pętli zewnętrznej: jeden łuk ------------------------------------
 add("goto", "motion_gotoxy", parent="repouter", next="point",
     inputs={"X": [1, [4, "0"]], "Y": [1, [4, "0"]]})
 
@@ -89,21 +94,27 @@ add("point", "motion_pointindirection", parent="goto", next="pendown",
 
 add("pendown", "pen_penDown", parent="point", next="repinner")
 
-# powtórz 4 razy -> kwadrat (idź bok, obróć o 90 stopni)
+# powtórz (KROKI_LUKU) razy -> łuk (idź krok, obróć, czekaj)
 add("repinner", "control_repeat", parent="pendown", next="penup",
-    inputs={"TIMES": [1, [6, "4"]], "SUBSTACK": [2, "move"]})
+    inputs={"TIMES": [1, [6, KROKI_LUKU]], "SUBSTACK": [2, "move"]})
 
 add("move", "motion_movesteps", parent="repinner", next="turn",
-    inputs={"STEPS": [1, [4, BOK]]})
-add("turn", "motion_turnright", parent="move",
-    inputs={"DEGREES": [1, [4, "90"]]})
+    inputs={"STEPS": [1, [4, KROK]]})
+add("turn", "motion_turnright", parent="move", next="waitw",
+    inputs={"DEGREES": [1, [4, SKRET]]})
+add("waitw", "control_wait", parent="turn",
+    inputs={"DURATION": [1, [5, WAIT_W]]})
 
-add("penup", "pen_penUp", parent="repinner", next="changeangle")
+add("penup", "pen_penUp", parent="repinner", next="waitz")
+
+# krótka pauza między figurami
+add("waitz", "control_wait", parent="penup", next="changeangle",
+    inputs={"DURATION": [1, [5, WAIT_Z]]})
 
 # kat <- kat + 360/liczba (symetryczne rozłożenie)
 add("divang", "operator_divide", parent="changeangle",
     inputs={"NUM1": [1, [4, "360"]], "NUM2": var_in("liczba", VID_COUNT, "1")})
-add("changeangle", "data_changevariableby", parent="penup", next="changetrans",
+add("changeangle", "data_changevariableby", parent="waitz", next="changetrans",
     inputs={"VALUE": [3, "divang", [4, "0"]]},
     fields={"VARIABLE": ["kat", VID_ANGLE]})
 
