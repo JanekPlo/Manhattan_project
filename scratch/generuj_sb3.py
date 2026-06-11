@@ -1,11 +1,16 @@
 #!/usr/bin/env python3
-"""Generuje projekt Scratcha (.sb3) rysujacy wirujace spirale.
+"""Generuje projekt Scratcha (.sb3) rysujacy symetryczny wzor z luków.
+
+Jedna figura (jeden ciagly slad pisaka):
+  - duzy luk 180 stopni ("kopula"),
+  - zawrot o 180 stopni,
+  - dwa male luki 180 stopni spotykajace sie w ostrym dziobku na srodku.
 
 Program w Scratchu:
   - po kliknieciu zielonej flagi pyta "Ile figur mam narysowac?",
-  - rysuje pisakiem tyle spiralnych ramion, ile podal uzytkownik,
-  - ramiona sa rozlozone symetrycznie co (360 / liczba figur) stopni,
-  - kazde kolejne ramie jest bardziej przezroczyste (pen transparency).
+  - rysuje tyle figur, ile podal uzytkownik, obracajac kazda
+    o (360 / liczba figur) stopni wokol srodka sceny,
+  - kazda kolejna figura jest bardziej przezroczysta (pen transparency).
 """
 import hashlib
 import json
@@ -17,7 +22,6 @@ OUT = Path(__file__).parent / "wirujace_spirale.sb3"
 # --- identyfikatory zmiennych -------------------------------------------------
 VAR_FIGURY = ("figury", "var_figury")
 VAR_KIERUNEK = ("kierunek", "var_kierunek")
-VAR_KROK = ("krok", "var_krok")
 
 
 def var_input(var, shadow=(4, "10")):
@@ -41,6 +45,10 @@ def block(opcode, nxt=None, parent=None, inputs=None, fields=None,
     return b
 
 
+def num(value):
+    return [1, [4, str(value)]]
+
+
 BLOCKS = {
     # --- start ---
     "b01": block("event_whenflagclicked", nxt="b02", top=True),
@@ -48,11 +56,11 @@ BLOCKS = {
     "b03": block("looks_hide", nxt="b04", parent="b02"),
     "b04": block("pen_penUp", nxt="b05", parent="b03"),
     "b05": block("pen_setPenSizeTo", nxt="b06", parent="b04",
-                 inputs={"SIZE": [1, [4, "2"]]}),
+                 inputs={"SIZE": num(2)}),
     "b06": block("pen_setPenColorToColor", nxt="b07", parent="b05",
                  inputs={"COLOR": [1, [9, "#a03c3c"]]}),
     "b07": block("pen_setPenColorParamTo", nxt="b08", parent="b06",
-                 inputs={"COLOR_PARAM": [1, "m01"], "VALUE": [1, [4, "0"]]}),
+                 inputs={"COLOR_PARAM": [1, "m01"], "VALUE": num(0)}),
     "m01": block("pen_menu_colorParam", parent="b07", shadow=True,
                  fields={"colorParam": ["transparency", None]}),
     "b08": block("sensing_askandwait", nxt="b09", parent="b07",
@@ -68,42 +76,56 @@ BLOCKS = {
     # --- petla glowna: jedna iteracja = jedna figura ---
     "b12": block("control_repeat", parent="b11",
                  inputs={"TIMES": var_input(VAR_FIGURY, (6, "10")),
-                         "SUBSTACK": [2, "b14"]}),
-    "b14": block("motion_gotoxy", nxt="b15", parent="b12",
-                 inputs={"X": [1, [4, "0"]], "Y": [1, [4, "0"]]}),
-    "b15": block("motion_pointindirection", nxt="b16", parent="b14",
+                         "SUBSTACK": [2, "c01"]}),
+    "c01": block("motion_gotoxy", nxt="c02", parent="b12",
+                 inputs={"X": num(0), "Y": num(0)}),
+    "c02": block("motion_pointindirection", nxt="c03", parent="c01",
                  inputs={"DIRECTION": var_input(VAR_KIERUNEK, (8, "90"))}),
-    "b16": block("data_setvariableto", nxt="b17", parent="b15",
-                 inputs={"VALUE": [1, [10, "1"]]},
-                 fields={"VARIABLE": list(VAR_KROK)}),
-    "b17": block("pen_penDown", nxt="b18", parent="b16"),
+    "c03": block("pen_penDown", nxt="c04", parent="c02"),
 
-    # --- petla wewnetrzna: rysowanie jednej spirali ---
-    "b18": block("control_repeat", nxt="b22", parent="b17",
-                 inputs={"TIMES": [1, [6, "45"]], "SUBSTACK": [2, "b19"]}),
-    "b19": block("motion_movesteps", nxt="b20", parent="b18",
-                 inputs={"STEPS": var_input(VAR_KROK)}),
-    "b20": block("motion_turnright", nxt="b21", parent="b19",
-                 inputs={"DEGREES": [1, [4, "8"]]}),
-    "b21": block("data_changevariableby", parent="b20",
-                 inputs={"VALUE": [1, [4, "0.4"]]},
-                 fields={"VARIABLE": list(VAR_KROK)}),
+    # duzy luk 180 stopni (kopula)
+    "c04": block("control_repeat", nxt="c05", parent="c03",
+                 inputs={"TIMES": [1, [6, "36"]], "SUBSTACK": [2, "d01"]}),
+    "d01": block("motion_movesteps", nxt="d02", parent="c04",
+                 inputs={"STEPS": num(6)}),
+    "d02": block("motion_turnright", parent="d01",
+                 inputs={"DEGREES": num(5)}),
+
+    # zawrot i pierwszy maly luk (prawy garb, do dziobka na srodku)
+    "c05": block("motion_turnright", nxt="c06", parent="c04",
+                 inputs={"DEGREES": num(180)}),
+    "c06": block("control_repeat", nxt="c07", parent="c05",
+                 inputs={"TIMES": [1, [6, "36"]], "SUBSTACK": [2, "d03"]}),
+    "d03": block("motion_movesteps", nxt="d04", parent="c06",
+                 inputs={"STEPS": num(3)}),
+    "d04": block("motion_turnleft", parent="d03",
+                 inputs={"DEGREES": num(5)}),
+
+    # zawrot w dziobku i drugi maly luk (lewy garb)
+    "c07": block("motion_turnright", nxt="c08", parent="c06",
+                 inputs={"DEGREES": num(180)}),
+    "c08": block("control_repeat", nxt="c09", parent="c07",
+                 inputs={"TIMES": [1, [6, "36"]], "SUBSTACK": [2, "d05"]}),
+    "d05": block("motion_movesteps", nxt="d06", parent="c08",
+                 inputs={"STEPS": num(3)}),
+    "d06": block("motion_turnleft", parent="d05",
+                 inputs={"DEGREES": num(5)}),
 
     # --- po narysowaniu figury: obrot i wieksza przezroczystosc ---
-    "b22": block("pen_penUp", nxt="b23", parent="b18"),
-    "b23": block("data_changevariableby", nxt="b25", parent="b22",
-                 inputs={"VALUE": [3, "b24", [4, "10"]]},
+    "c09": block("pen_penUp", nxt="c10", parent="c08"),
+    "c10": block("data_changevariableby", nxt="c11", parent="c09",
+                 inputs={"VALUE": [3, "o01", [4, "10"]]},
                  fields={"VARIABLE": list(VAR_KIERUNEK)}),
-    "b24": block("operator_divide", parent="b23",
-                 inputs={"NUM1": [1, [4, "360"]],
+    "o01": block("operator_divide", parent="c10",
+                 inputs={"NUM1": num(360),
                          "NUM2": var_input(VAR_FIGURY, (4, ""))}),
-    "b25": block("pen_changePenColorParamBy", parent="b23",
+    "c11": block("pen_changePenColorParamBy", parent="c10",
                  inputs={"COLOR_PARAM": [1, "m02"],
-                         "VALUE": [3, "b26", [4, "10"]]}),
-    "m02": block("pen_menu_colorParam", parent="b25", shadow=True,
+                         "VALUE": [3, "o02", [4, "10"]]}),
+    "m02": block("pen_menu_colorParam", parent="c11", shadow=True,
                  fields={"colorParam": ["transparency", None]}),
-    "b26": block("operator_divide", parent="b25",
-                 inputs={"NUM1": [1, [4, "75"]],
+    "o02": block("operator_divide", parent="c11",
+                 inputs={"NUM1": num(75),
                          "NUM2": var_input(VAR_FIGURY, (4, ""))}),
 }
 
@@ -143,7 +165,6 @@ PROJECT = {
             "variables": {
                 VAR_FIGURY[1]: [VAR_FIGURY[0], 0],
                 VAR_KIERUNEK[1]: [VAR_KIERUNEK[0], 0],
-                VAR_KROK[1]: [VAR_KROK[0], 0],
             },
             "lists": {},
             "broadcasts": {},

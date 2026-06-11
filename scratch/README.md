@@ -1,14 +1,18 @@
-# Wirujące spirale – projekt Scratch
+# Symetryczny wzór z łuków – projekt Scratch
 
 Rozwiązanie zadania: program po uruchomieniu pyta, ile figur narysować,
-rysuje je rozłożone symetrycznie wokół środka, a każda kolejna figura
-jest odrobinę bardziej przezroczysta od poprzedniej.
+rysuje je rozłożone symetrycznie wokół środka sceny, a każda kolejna
+figura jest odrobinę bardziej przezroczysta od poprzedniej.
+
+Jedna figura to jeden ciągły ślad pisaka: duży łuk 180° („kopuła"),
+zawrót o 180°, a pod spodem dwa mniejsze łuki 180°, które spotykają się
+w ostrym dzióbku na środku.
 
 ## Jak uruchomić
 
 1. Wejdź na https://scratch.mit.edu/projects/editor/
 2. Plik → Wczytaj ze swojego komputera → wybierz `wirujace_spirale.sb3`
-3. Kliknij zieloną flagę i podaj liczbę figur (np. 12).
+3. Kliknij zieloną flagę i podaj liczbę figur (np. 8).
 
 Plik `.sb3` jest generowany skryptem `generuj_sb3.py`, a `podglad.py`
 rysuje podgląd efektu (`podglad.png`) tym samym algorytmem.
@@ -29,12 +33,18 @@ ustaw [kierunek] na 0
 powtórz (figury) razy
     idź do x: 0 y: 0
     ustaw kierunek na (kierunek)
-    ustaw [krok] na 1
     przyłóż pisak
-    powtórz (45) razy
-        przesuń o (krok) kroków
-        obróć w prawo o (8) stopni
-        zmień [krok] o 0.4
+    powtórz (36) razy            // duży łuk (kopuła)
+        przesuń o (6) kroków
+        obróć w prawo o (5) stopni
+    obróć w prawo o (180) stopni // zawrót na końcu kopuły
+    powtórz (36) razy            // pierwszy mały łuk (garb)
+        przesuń o (3) kroków
+        obróć w lewo o (5) stopni
+    obróć w prawo o (180) stopni // zawrót w dzióbku na środku
+    powtórz (36) razy            // drugi mały łuk (garb)
+        przesuń o (3) kroków
+        obróć w lewo o (5) stopni
     podnieś pisak
     zmień [kierunek] o (360 / figury)
     zmień [przezroczystość] pisaka o (75 / figury)
@@ -44,12 +54,13 @@ powtórz (figury) razy
 
 - **Pytanie o liczbę figur** – blok „zapytaj … i czekaj", odpowiedź
   trafia do zmiennej `figury`.
-- **Symetria** – po każdej figurze duszek wraca na środek i obraca się
-  o `360 / figury` stopni, więc ramiona są rozłożone równomiernie
-  niezależnie od podanej liczby.
+- **Symetria** – każda figura zaczyna się na środku sceny, a przed
+  kolejną duszek obraca się o `360 / figury` stopni, więc figury są
+  rozłożone równomiernie niezależnie od podanej liczby.
 - **Rosnąca przezroczystość** – po każdej figurze przezroczystość
   pisaka rośnie o `75 / figury`, czyli od 0% dla pierwszej do ok. 75%
   dla ostatniej.
-- **Kształt figury** – spirala: w pętli każdy krok jest dłuższy
-  (`krok + 0.4`) przy stałym obrocie 8°, co daje rozkręcające się
-  ramię jak na rysunku z zadania.
+- **Kształt figury** – łuk powstaje z powtarzania „przesuń + obróć o 5°";
+  36 powtórzeń × 5° = 180°, czyli pół okręgu. Kopuła ma krok 6,
+  garby krok 3, więc są o połowę mniejsze, a zawroty o 180° dają
+  ostre dzióbki jak na rysunku.
