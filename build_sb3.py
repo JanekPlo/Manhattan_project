@@ -1,21 +1,22 @@
 #!/usr/bin/env python3
-"""Buduje plik Scratch (.sb3) z programem rysującym symetryczny wzór spiral.
+"""Buduje plik Scratch (.sb3) z programem rysującym symetryczny wzór z kwadratów.
 
 Program w Scratchu:
   - po starcie pyta: "Ile figur narysować?"
-  - rysuje podaną liczbę spiral rozłożonych symetrycznie wokół środka
-  - każda kolejna spirala jest odrobinę bardziej przezroczysta od poprzedniej
+  - rysuje podaną liczbę kwadratów rozłożonych symetrycznie wokół środka
+    (każdy obrócony o 360/liczba stopni -> efekt rozety / kwiatka)
+  - każdy kolejny kwadrat jest odrobinę bardziej przezroczysty od poprzedniego
 """
 import hashlib
 import json
 import zipfile
 
-# ---------------------------------------------------------------------------
-# Identyfikatory zmiennych (globalne, trzymane na Scenie / Stage)
-# ---------------------------------------------------------------------------
+# Identyfikatory zmiennych globalnych (trzymane na Scenie / Stage)
 VID_COUNT = "var-liczba"
 VID_ANGLE = "var-kat"
-VID_R = "var-promien"
+
+# Długość boku kwadratu
+BOK = "100"
 
 
 def var_in(name, vid, default="0"):
@@ -23,9 +24,6 @@ def var_in(name, vid, default="0"):
     return [3, [12, name, vid], [4, default]]
 
 
-# ---------------------------------------------------------------------------
-# Bloki sprite'a
-# ---------------------------------------------------------------------------
 blocks = {}
 
 
@@ -69,44 +67,36 @@ add("param1", "pen_menu_colorParam", parent="settrans", shadow=True,
 add("settrans", "pen_setPenColorParamTo", parent="setcount", next="setangle",
     inputs={"COLOR_PARAM": [1, "param1"], "VALUE": [1, [4, "0"]]})
 
-# kąt <- 0
+# kat <- 0
 add("setangle", "data_setvariableto", parent="settrans", next="repouter",
     inputs={"VALUE": [1, [4, "0"]]},
     fields={"VARIABLE": ["kat", VID_ANGLE]})
 
-# powtórz (liczba) razy
+# powtórz (liczba) razy -> jedna figura na obrót
 add("repouter", "control_repeat", parent="setangle",
     inputs={"TIMES": var_in("liczba", VID_COUNT, "5"),
             "SUBSTACK": [2, "goto"]})
 
-# --- ciało pętli zewnętrznej (jedna figura) --------------------------------
+# --- ciało pętli zewnętrznej: jeden kwadrat --------------------------------
 add("goto", "motion_gotoxy", parent="repouter", next="point",
     inputs={"X": [1, [4, "0"]], "Y": [1, [4, "0"]]})
 
 # skieruj w stronę (90 + kat)
 add("addop", "operator_add", parent="point",
     inputs={"NUM1": [1, [4, "90"]], "NUM2": var_in("kat", VID_ANGLE)})
-add("point", "motion_pointindirection", parent="goto", next="setr",
+add("point", "motion_pointindirection", parent="goto", next="pendown",
     inputs={"DIRECTION": [3, "addop", [8, "90"]]})
 
-# promień <- 0
-add("setr", "data_setvariableto", parent="point", next="pendown",
-    inputs={"VALUE": [1, [4, "0"]]},
-    fields={"VARIABLE": ["promien", VID_R]})
+add("pendown", "pen_penDown", parent="point", next="repinner")
 
-add("pendown", "pen_penDown", parent="setr", next="repinner")
-
-# powtórz 36 (rysuj spiralę)
+# powtórz 4 razy -> kwadrat (idź bok, obróć o 90 stopni)
 add("repinner", "control_repeat", parent="pendown", next="penup",
-    inputs={"TIMES": [1, [6, "36"]], "SUBSTACK": [2, "move"]})
+    inputs={"TIMES": [1, [6, "4"]], "SUBSTACK": [2, "move"]})
 
-add("move", "motion_movesteps", parent="repinner", next="changer",
-    inputs={"STEPS": var_in("promien", VID_R, "1")})
-add("changer", "data_changevariableby", parent="move", next="turn",
-    inputs={"VALUE": [1, [4, "0.7"]]},
-    fields={"VARIABLE": ["promien", VID_R]})
-add("turn", "motion_turnright", parent="changer",
-    inputs={"DEGREES": [1, [4, "20"]]})
+add("move", "motion_movesteps", parent="repinner", next="turn",
+    inputs={"STEPS": [1, [4, BOK]]})
+add("turn", "motion_turnright", parent="move",
+    inputs={"DEGREES": [1, [4, "90"]]})
 
 add("penup", "pen_penUp", parent="repinner", next="changeangle")
 
@@ -117,7 +107,7 @@ add("changeangle", "data_changevariableby", parent="penup", next="changetrans",
     inputs={"VALUE": [3, "divang", [4, "0"]]},
     fields={"VARIABLE": ["kat", VID_ANGLE]})
 
-# zwiększ przezroczystość o 80/liczba (każda kolejna bardziej przezroczysta)
+# zwiększ przezroczystość o 80/liczba (każdy kolejny bardziej przezroczysty)
 add("param2", "pen_menu_colorParam", parent="changetrans", shadow=True,
     fields={"colorParam": ["transparency", None]})
 add("divtr", "operator_divide", parent="changetrans",
@@ -147,7 +137,6 @@ stage = {
     "variables": {
         VID_COUNT: ["liczba", 0],
         VID_ANGLE: ["kat", 0],
-        VID_R: ["promien", 0],
     },
     "lists": {},
     "broadcasts": {},
@@ -207,14 +196,10 @@ project = {
     "meta": {"semver": "3.0.0", "vm": "2.3.0", "agent": ""},
 }
 
-# ---------------------------------------------------------------------------
-# Zapis archiwum .sb3
-# ---------------------------------------------------------------------------
-out = "spirala.sb3"
+out = "figury.sb3"
 with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
     z.writestr("project.json", json.dumps(project, ensure_ascii=False))
     z.writestr(dot_md5 + ".svg", DOT_SVG)
     z.writestr(bg_md5 + ".svg", BG_SVG)
 
 print("Zapisano", out)
-print("project.json OK, kostiumy:", dot_md5, bg_md5)
