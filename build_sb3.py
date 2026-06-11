@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
-"""Buduje plik Scratch (.sb3) z programem rysującym symetryczny wzór z łuków.
+"""Buduje plik Scratch (.sb3) z programem rysującym symetryczny wzór z półksiężyców.
 
 Program w Scratchu:
   - po starcie pyta: "Ile figur narysować?"
-  - rysuje podaną liczbę ŁUKÓW (zakręcających płatków) rozłożonych
-    symetrycznie wokół środka -> efekt jak na poleceniu
-  - każdy kolejny łuk jest odrobinę bardziej przezroczysty od poprzedniego
+  - rysuje podaną liczbę PÓŁKSIĘŻYCÓW (płatków zbudowanych z dwóch łuków)
+    rozłożonych symetrycznie wokół środka -> efekt jak na poleceniu
+  - każdy kolejny półksiężyc jest odrobinę bardziej przezroczysty od poprzedniego
   - rysuje się powoli (krótkie "czekaj"), więc widać, jak wzór się układa
+
+Półksiężyc/płatek = dwa identyczne łuki + obrót o (180 - łuk) na każdym czubku,
+co domyka kształt (klasyczny "płatek" w Scratchu).
 """
 import hashlib
 import json
@@ -16,12 +19,17 @@ import zipfile
 VID_COUNT = "var-liczba"
 VID_ANGLE = "var-kat"
 
-# Parametry łuku i tempa rysowania
-KROK = "10"          # długość kroku łuku
-SKRET = "9"          # obrót po każdym kroku (stopnie) -> krzywizna
-KROKI_LUKU = "26"    # liczba kroków -> łuk zakręca o 26*9 = 234 stopnie
-WAIT_W = "0.02"      # czekaj wewnątrz łuku (im więcej, tym wolniej)
+# Parametry półksiężyca i tempa rysowania
+KROK = "8"           # długość kroku łuku
+SKRET = 7            # obrót po każdym kroku (stopnie)
+KROKI_LUKU = 20      # liczba kroków jednego łuku
+WAIT_W = "0.01"      # czekaj wewnątrz łuku (większe = wolniej)
 WAIT_Z = "0.1"       # czekaj między kolejnymi figurami
+
+# Kąt obrotu na czubku półksiężyca, który domyka kształt
+TIP = str(180 - KROKI_LUKU * SKRET)   # 180 - 140 = 40 stopni
+SKRET = str(SKRET)
+KROKI_LUKU = str(KROKI_LUKU)
 
 
 def var_in(name, vid, default="0"):
@@ -47,6 +55,23 @@ def add(bid, opcode, *, next=None, parent=None, inputs=None, fields=None,
         b["x"] = x
         b["y"] = y
     blocks[bid] = b
+
+
+def arc(prefix, parent, nxt):
+    """Tworzy blok 'powtórz' rysujący jeden łuk; zwraca id bloku 'powtórz'."""
+    rep = prefix + "rep"
+    mv = prefix + "mv"
+    tn = prefix + "tn"
+    wt = prefix + "wt"
+    add(rep, "control_repeat", parent=parent, next=nxt,
+        inputs={"TIMES": [1, [6, KROKI_LUKU]], "SUBSTACK": [2, mv]})
+    add(mv, "motion_movesteps", parent=rep, next=tn,
+        inputs={"STEPS": [1, [4, KROK]]})
+    add(tn, "motion_turnright", parent=mv, next=wt,
+        inputs={"DEGREES": [1, [4, SKRET]]})
+    add(wt, "control_wait", parent=tn,
+        inputs={"DURATION": [1, [5, WAIT_W]]})
+    return rep
 
 
 # --- skrypt główny ---------------------------------------------------------
@@ -77,12 +102,12 @@ add("setangle", "data_setvariableto", parent="settrans", next="repouter",
     inputs={"VALUE": [1, [4, "0"]]},
     fields={"VARIABLE": ["kat", VID_ANGLE]})
 
-# powtórz (liczba) razy -> jeden łuk na obrót
+# powtórz (liczba) razy -> jeden półksiężyc na obrót
 add("repouter", "control_repeat", parent="setangle",
     inputs={"TIMES": var_in("liczba", VID_COUNT, "8"),
             "SUBSTACK": [2, "goto"]})
 
-# --- ciało pętli zewnętrznej: jeden łuk ------------------------------------
+# --- ciało pętli zewnętrznej: jeden półksiężyc -----------------------------
 add("goto", "motion_gotoxy", parent="repouter", next="point",
     inputs={"X": [1, [4, "0"]], "Y": [1, [4, "0"]]})
 
@@ -92,20 +117,17 @@ add("addop", "operator_add", parent="point",
 add("point", "motion_pointindirection", parent="goto", next="pendown",
     inputs={"DIRECTION": [3, "addop", [8, "90"]]})
 
-add("pendown", "pen_penDown", parent="point", next="repinner")
+add("pendown", "pen_penDown", parent="point", next="arc1rep")
 
-# powtórz (KROKI_LUKU) razy -> łuk (idź krok, obróć, czekaj)
-add("repinner", "control_repeat", parent="pendown", next="penup",
-    inputs={"TIMES": [1, [6, KROKI_LUKU]], "SUBSTACK": [2, "move"]})
+# łuk 1 -> obrót na czubku -> łuk 2 -> obrót na czubku (domyka półksiężyc)
+arc("arc1", "pendown", "tip1")
+add("tip1", "motion_turnright", parent="arc1rep", next="arc2rep",
+    inputs={"DEGREES": [1, [4, TIP]]})
+arc("arc2", "tip1", "tip2")
+add("tip2", "motion_turnright", parent="arc2rep", next="penup",
+    inputs={"DEGREES": [1, [4, TIP]]})
 
-add("move", "motion_movesteps", parent="repinner", next="turn",
-    inputs={"STEPS": [1, [4, KROK]]})
-add("turn", "motion_turnright", parent="move", next="waitw",
-    inputs={"DEGREES": [1, [4, SKRET]]})
-add("waitw", "control_wait", parent="turn",
-    inputs={"DURATION": [1, [5, WAIT_W]]})
-
-add("penup", "pen_penUp", parent="repinner", next="waitz")
+add("penup", "pen_penUp", parent="tip2", next="waitz")
 
 # krótka pauza między figurami
 add("waitz", "control_wait", parent="penup", next="changeangle",
@@ -213,4 +235,4 @@ with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
     z.writestr(dot_md5 + ".svg", DOT_SVG)
     z.writestr(bg_md5 + ".svg", BG_SVG)
 
-print("Zapisano", out)
+print("Zapisano", out, "| TIP =", TIP)
