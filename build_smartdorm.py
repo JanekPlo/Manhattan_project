@@ -153,6 +153,28 @@ def add_runs_with_bold(paragraph, text):
             paragraph.add_run(part)
 
 
+def _set_row_cant_split(row):
+    """Uniemożliwia dzielenie wiersza tabeli między stronami (w:cantSplit).
+
+    Bez tego LibreOffice/Word potrafi rozciąć wiersz na granicy strony, przez
+    co długie słowa w komórce (np. „zakwaterowanie.zakonczone") wyglądają na
+    przecięte w połowie.
+    """
+    trPr = row._tr.get_or_add_trPr()
+    cant = OxmlElement("w:cantSplit")
+    cant.set(qn("w:val"), "true")
+    trPr.append(cant)
+
+
+def _set_row_as_header(row):
+    """Oznacza wiersz jako nagłówek tabeli (w:tblHeader) — powtarzany na każdej
+    stronie, na którą tabela zachodzi."""
+    trPr = row._tr.get_or_add_trPr()
+    hdr = OxmlElement("w:tblHeader")
+    hdr.set(qn("w:val"), "true")
+    trPr.append(hdr)
+
+
 def render_table(document, rows):
     """rows: lista list komórek (już bez znaków |)."""
     if not rows:
@@ -165,7 +187,13 @@ def render_table(document, rows):
     table.style = "Light Grid Accent 1"
     table.alignment = WD_TABLE_ALIGNMENT.CENTER
     for r_idx, row in enumerate(body):
-        cells = table.add_row().cells
+        table_row = table.add_row()
+        # wiersz nie może być dzielony przez granicę strony (bez rozcinania słów)
+        _set_row_cant_split(table_row)
+        if r_idx == 0:
+            # nagłówek powtarzany na każdej stronie, na którą tabela zachodzi
+            _set_row_as_header(table_row)
+        cells = table_row.cells
         for c_idx in range(cols):
             txt = row[c_idx] if c_idx < len(row) else ""
             cell_p = cells[c_idx].paragraphs[0]

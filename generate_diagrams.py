@@ -113,9 +113,9 @@ def architektura():
     # --- warstwa danych ---
     zone(ax, 0.3, 2.8, 11.4, 2.0, "WARSTWA DANYCH", C_DATA_E)
     box(ax, 0.8, 3.05, 3.2, 1.3, "PostgreSQL 16", C_DATA, C_DATA_E, bold=True,
-        sub="dane relacyjne,\npgcrypto (PESEL)")
+        sub="dane relacyjne, PESEL\nszyfrowany AES-256-GCM")
     box(ax, 4.4, 3.05, 3.2, 1.3, "Redis 7.2", C_DATA, C_DATA_E, bold=True,
-        sub="cache dostępności pokoi,\nsesje, rate-limit")
+        sub="cache dostępności pokoi,\nrate-limit (bez sesji)")
     box(ax, 8.0, 3.05, 3.2, 1.3, "MinIO (S3 API)", C_DATA, C_DATA_E, bold=True,
         sub="załączniki zgłoszeń\n(zdjęcia usterek)")
     arrow(ax, 2.4, 5.15, 2.4, 4.35, label="JDBC / JPA")

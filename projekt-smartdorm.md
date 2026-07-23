@@ -51,7 +51,7 @@ Przyjęto architekturę **modularnego monolitu** (ang. modular monolith) opartą
 Zalety tego podejścia w kontekście SmartDorm:
 
 - proces kwaterowania korzysta z pełnych transakcji ACID w jednej bazie danych, co eliminuje problem podwójnych rezerwacji bez skomplikowanych protokołów rozproszonych;
-- aplikacja jest bezstanowa (sesje w Redis, JWT), więc skaluje się horyzontalnie — na dzień otwarcia zapisów wystarczy zwiększyć liczbę replik;
+- aplikacja jest bezstanowa (kontekst żądania niesie token JWT, brak sesji serwletowych; Redis przechowuje wyłącznie stan współdzielony — cache i liczniki rate-limitera), więc skaluje się horyzontalnie — na dzień otwarcia zapisów wystarczy zwiększyć liczbę replik;
 - granice modułów pokrywają się z potencjalnymi przyszłymi mikroserwisami — jeżeli system urośnie (np. obsługa wielu akademików w wielu miastach), moduł płatności lub helpdesk można wydzielić bez przepisywania logiki.
 
 Zadania niewymagające synchronicznej odpowiedzi (wysyłka powiadomień, comiesięczne naliczanie opłat, przetwarzanie webhooków płatności) są realizowane przez osobny proces workera konsumujący zdarzenia z kolejki komunikatów, co odciąża ścieżkę obsługi żądań HTTP.
@@ -91,25 +91,25 @@ Przyjęto następujące, konkretne wersje technologii (stan na moment projektowa
 
 | Obszar | Technologia | Wersja | Rola |
 |---|---|---|---|
-| Język backendu | Java (LTS) | 21 | logika serwerowa |
-| Framework backendu | Spring Boot | 3.3.x | REST, DI, bezpieczeństwo |
-| Serwer aplikacyjny | Tomcat (embedded) | 10.1 | kontener servletów w artefakcie |
-| ORM / dostęp do danych | Hibernate / Spring Data JPA | 6.5 / 3.3 | mapowanie obiektowo-relacyjne |
-| Migracje bazy | Flyway | 10.x | wersjonowanie schematu |
-| Język frontendu | TypeScript | 5.5 | typowany kod kliencki |
-| Framework frontendu | React | 18.3 | SPA / PWA |
-| Budowanie frontendu | Vite | 5.x | bundling, dev-server |
-| Baza danych | PostgreSQL | 16 | dane relacyjne |
-| Cache / sesje | Redis | 7.2 | cache dostępności, rate-limit |
-| Broker komunikatów | RabbitMQ | 3.13 | zdarzenia asynchroniczne |
-| Storage obiektowy | MinIO (S3 API) | RELEASE.2024-xx | załączniki zgłoszeń |
-| Serwer tożsamości | Keycloak | 25 | OAuth2 / OIDC / RBAC |
-| Reverse proxy | Nginx | 1.26 | TLS, LB, rate-limiting |
-| Odporność integracji | Resilience4j | 2.2 | retry, circuit breaker |
-| Monitoring | Prometheus + Grafana | 2.53 / 11 | metryki, dashboardy |
-| Śledzenie błędów | Sentry (self-hosted) | 24.x | agregacja wyjątków |
+| Język backendu | Java (LTS) | 21.0.4 | logika serwerowa |
+| Framework backendu | Spring Boot | 3.3.4 | REST, DI, bezpieczeństwo |
+| Serwer aplikacyjny | Tomcat (embedded) | 10.1.28 | kontener servletów w artefakcie |
+| ORM / dostęp do danych | Hibernate / Spring Data JPA | 6.5.3 / 3.3.4 | mapowanie obiektowo-relacyjne |
+| Migracje bazy | Flyway | 10.17.0 | wersjonowanie schematu |
+| Język frontendu | TypeScript | 5.5.4 | typowany kod kliencki |
+| Framework frontendu | React | 18.3.1 | SPA / PWA |
+| Budowanie frontendu | Vite | 5.4.8 | bundling, dev-server |
+| Baza danych | PostgreSQL | 16.4 | dane relacyjne |
+| Cache / stan współdzielony | Redis | 7.2.5 | cache dostępności, rate-limit |
+| Broker komunikatów | RabbitMQ | 3.13.7 | zdarzenia asynchroniczne |
+| Storage obiektowy | MinIO (S3 API) | RELEASE.2024-09-22 | załączniki zgłoszeń |
+| Serwer tożsamości | Keycloak | 25.0.5 | OAuth2 / OIDC / RBAC |
+| Reverse proxy | Nginx | 1.26.2 | TLS, LB, rate-limiting |
+| Odporność integracji | Resilience4j | 2.2.0 | retry, circuit breaker |
+| Monitoring | Prometheus + Grafana | 2.53.2 / 11.2.0 | metryki, dashboardy |
+| Śledzenie błędów | Sentry (self-hosted) | 24.9.0 | agregacja wyjątków |
 
-Uzasadnienie kluczowych wyborów: Java 21 z wirtualnymi wątkami (Project Loom) pozwala obsłużyć dużą liczbę równoległych żądań I/O-bound (szczyt logowań) bez przechodzenia na programowanie reaktywne; PostgreSQL 16 zapewnia transakcyjność, blokady wierszowe potrzebne przy rezerwacji miejsc oraz rozszerzenie pgcrypto do szyfrowania danych osobowych; React + PWA realizuje wymóg dostępności mobilnej jednym kodem.
+Uzasadnienie kluczowych wyborów: Java 21 z wirtualnymi wątkami (Project Loom) pozwala obsłużyć dużą liczbę równoległych żądań I/O-bound (szczyt logowań) bez przechodzenia na programowanie reaktywne; PostgreSQL 16 zapewnia transakcyjność oraz blokady wierszowe potrzebne przy rezerwacji miejsc, a szyfrowanie danych osobowych realizowane jest na poziomie aplikacji (AES-256-GCM, zob. rozdz. 12.3) — dzięki czemu klucze nigdy nie trafiają do bazy; React + PWA realizuje wymóg dostępności mobilnej jednym kodem.
 
 # 5. Infrastruktura wdrożeniowa
 
@@ -155,7 +155,7 @@ Załączniki zgłoszeń (zdjęcia usterek, do 10 MB, formaty JPEG/PNG/HEIC) nie 
 
 ## 6.3. Cache i dane ulotne — Redis
 
-Redis 7.2 pełni trzy role: (1) **cache dostępności pokoi** — mapa „pokój → liczba wolnych miejsc" odświeżana zdarzeniami domenowymi, z TTL 30 s jako zabezpieczeniem przed dryfem; (2) **magazyn stanu ratelimitera** i krótkotrwałych blokad idempotencyjnych; (3) **cache sesyjnych metadanych UI** (np. treść ogłoszeń administracji). Cache jest wyłącznie optymalizacją — źródłem prawdy zawsze pozostaje PostgreSQL, a operacja rezerwacji miejsca nigdy nie ufa wartości z cache.
+Redis 7.2 pełni trzy role: (1) **cache dostępności pokoi** — mapa „pokój → liczba wolnych miejsc" odświeżana zdarzeniami domenowymi, z TTL 30 s jako zabezpieczeniem przed dryfem; (2) **magazyn stanu ratelimitera** i krótkotrwałych blokad idempotencyjnych; (3) **cache danych słownikowych i treści UI** (np. ogłoszenia administracji). Redis nie przechowuje sesji użytkowników — uwierzytelnienie jest bezstanowe (JWT), więc żaden ze stanów w Redis nie jest wymagany do obsłużenia pojedynczego żądania. Cache jest wyłącznie optymalizacją — źródłem prawdy zawsze pozostaje PostgreSQL, a operacja rezerwacji miejsca nigdy nie ufa wartości z cache.
 
 ## 6.4. Kopie zapasowe i retencja
 
